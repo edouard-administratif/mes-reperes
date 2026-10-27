@@ -18,6 +18,12 @@ buildscript {
 apply from: "variables.gradle"
 
 allprojects {
+    // Match the tools supplied by the Android SDK 36 Docker image in every module.
+    ['com.android.application', 'com.android.library'].each { pluginId ->
+        plugins.withId(pluginId) {
+            android.buildToolsVersion = '36.0.0'
+        }
+    }
     repositories {
         google()
         mavenCentral()

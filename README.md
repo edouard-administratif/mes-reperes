@@ -36,6 +36,23 @@ Le résultat attendu est `android/app/build/outputs/apk/debug/app-debug.apk`. Il
 
 Le dossier Android est généré par le CLI officiel de Capacitor, pas par un gabarit maintenu à la main. Une fois généré, conserver ses fichiers sources et sa configuration dans Git ; les ressources copiées et les résultats de compilation sont ignorés.
 
+### Compiler avec Docker
+
+Sur Ubuntu, seuls Node.js 24+ et un moteur Docker accessible sont nécessaires ; Java et le SDK Android sont fournis par l’image [Cirrus Labs Android SDK 36](https://github.com/cirruslabs/docker-images-android).
+
+```sh
+npm ci
+npm run android:docker
+```
+
+Cette commande reconstruit le Web, synchronise Capacitor, puis lance `assembleDebug` dans `ghcr.io/cirruslabs/android-sdk:36` (image verrouillée par son digest dans le script). Le premier lancement télécharge l’image et les dépendances Gradle. Le dépôt n’est ni publié ni envoyé à un service de compilation.
+
+L’APK est écrit dans **`android/app/build/outputs/apk/debug/app-debug.apk`**. Sous Linux, le conteneur utilise ton UID/GID pour que les fichiers produits restent à ton nom. Seuls `android/`, `node_modules/` et le cache de compilation sont montés dans le conteneur.
+
+Le cache Gradle et la clé de signature de debug sont conservés dans **`.cache/android-docker/`**, ignoré par Git (clé : `android/debug.keystore` dans ce cache). Conserver ce dossier permet de réutiliser les téléchargements et de signer les prochaines versions avec la même clé. Une nouvelle clé peut empêcher Android de mettre à jour une installation précédente : exporter le carnet avant toute désinstallation. Cette clé sert aux APK de développement, pas à une publication de production.
+
+Docker doit être démarré et `docker info` doit fonctionner avec ton utilisateur. Ne lance pas `sudo npm`.
+
 ## Web
 
 ```sh
@@ -114,6 +131,7 @@ scripts/
   serve.mjs                     Serveur statique de développement
   android-sync.mjs              Génération et synchronisation Android
   android-apk.mjs               Compilation de l’APK de debug
+  android-docker.mjs            Synchronisation et compilation dans Docker
 capacitor.config.json           Identité et configuration Capacitor
 test/                           Tests de logique, stockage et contrôleur
 ```
@@ -141,7 +159,8 @@ Vérification locale du 27 octobre 2026 :
 - `npm run build` produit le bundle Web et le HTML autonome.
 - Le HTML autonome a été exécuté dans Edge/Chromium en mode hors connexion, via `file://`, avec un profil de test vierge : ajout, persistance après rechargement, export JSON et réimport réussis, sans requête HTTP ni erreur JavaScript. La largeur mobile de 390 px ne déborde pas.
 - `npm run android:sync` génère et synchronise le projet `android/` avec SQLite, Filesystem et Share.
-- La compilation APK a été tentée, mais elle est bloquée par l’absence de Java (`JAVA_HOME` non défini et commande `java` absente). Aucun APK ni test sur émulateur ou téléphone n’est donc livré. Installer le JDK 21 et le SDK Android 36, puis lancer `npm run android:apk`.
+- `npm run android:docker` compile avec succès l’APK de debug et les plugins natifs, sans Java installé sur l’hôte. Les Build Tools sont fixés à 36.0.0 pour tous les modules dans `android/build.gradle`, afin d’utiliser ceux de l’image.
+- L’APK produit dans `android/app/build/outputs/apk/debug/app-debug.apk` a été vérifié par `apksigner` : signature v2 valide. Sa clé de debug persiste dans le cache local. Aucun test sur émulateur ou téléphone n’a encore été réalisé.
 
 Le DSFR fourni dans l’archive initiale a été remplacé par des styles locaux : son installation demandait l’acceptation de conditions spécifiques. Aucune acceptation n’a été enregistrée. Le projet n’en dépend plus.
 
