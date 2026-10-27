@@ -11,11 +11,11 @@ npm install
 npm test
 ```
 
-L’installation télécharge les dépendances et crée `package-lock.json`. Les tests de logique et de stockage ne nécessitent pas Android Studio.
+L’installation télécharge les dépendances. Le fichier `package-lock.json` verrouille les versions ; utiliser `npm ci` pour reproduire une installation. Les tests de logique et de stockage ne nécessitent pas Android Studio.
 
 ## Android
 
-Prérequis : Android Studio 2025.2.1 ou plus récent, son JDK et un SDK Android adaptés à Capacitor 8. Configurer le SDK via Android Studio (ou `ANDROID_HOME`).
+Prérequis : Android Studio 2025.2.1 ou plus récent, un JDK 21 et le SDK Android 36 adaptés à Capacitor 8. Configurer le SDK via Android Studio (ou `ANDROID_HOME`).
 
 ```sh
 npm run android:sync
@@ -42,9 +42,21 @@ Le dossier Android est généré par le CLI officiel de Capacitor, pas par un ga
 npm start
 ```
 
-Ouvrir **http://localhost:4173**. Le serveur ne sert que les fichiers statiques du dossier `dist/`. Pour un hébergement, servir ce dossier après `npm run build`. L’ouverture directe en `file://` ne convient pas aux modules JavaScript.
+Ouvrir **http://localhost:4173**. Le serveur ne sert que les fichiers statiques du dossier `dist/`. Pour un hébergement, servir ce dossier après `npm run build`. Pour ouvrir directement un fichier sans serveur, utiliser la version autonome décrite ci-dessous.
 
-Le build embarque le DSFR, Remix Icon, les polices et les ressources SQLite WebAssembly. Aucun CDN n’est nécessaire à l’exécution. Android fonctionne hors connexion une fois installé. La version Web nécessite que ses ressources soient accessibles ; aucun service worker de mise en cache n’est ajouté.
+Le build embarque les styles locaux, Remix Icon, sa police d’icônes et le binaire SQLite WebAssembly. Aucun CDN n’est nécessaire à l’exécution. Android fonctionne hors connexion une fois installé. La version Web nécessite que ses ressources soient accessibles ; aucun service worker de mise en cache n’est ajouté.
+
+## Fichier HTML autonome hors ligne
+
+```sh
+npm run build
+```
+
+Ouvrir **`dist/mes-reperes-hors-ligne.html`** directement dans un navigateur moderne (double clic, adresse `file://`). Ce fichier contient le JavaScript, les styles, les polices, les icônes et le moteur SQLite. Il ne nécessite ni serveur ni connexion Internet, même au premier lancement. Les liens des sources nutritionnelles restent des liens externes, consultables avec une connexion.
+
+Le carnet est enregistré dans IndexedDB, **pas dans le fichier HTML**. Copier le HTML seul ne copie donc pas les repas. Utiliser **Exporter mon carnet** puis **Importer** pour les transférer. Garder le même navigateur, profil et emplacement du fichier ; le stockage des pages `file://` dépend du navigateur. Une navigation privée ou l’effacement des données du navigateur peut supprimer le carnet. Si le navigateur refuse IndexedDB pour les fichiers locaux, utiliser `npm start` ou l’application Android.
+
+Les licences des bibliothèques sont intégrées au HTML autonome et également disponibles dans `dist/THIRD_PARTY_NOTICES.txt`.
 
 ## Stockage : natif et Web séparés
 
@@ -79,7 +91,7 @@ Ne pas ajouter les exports personnels ni les fichiers SQLite au dépôt Git.
 ```text
 src/
   index.html                    Structure de l’interface
-  css/                          Styles et imports DSFR / Remix Icon
+  css/                          Styles locaux et import Remix Icon
   js/
     app.js                      Initialisation de l’application
     platform.js                 Choix explicite du stockage natif ou Web
@@ -93,12 +105,12 @@ src/
     repository-native.js        Transactions SQLite via le pont Capacitor
     repository.js               Adaptateur SQLite Web
     browser-storage.js          Fichier SQLite Web dans IndexedDB
-    sqlite-browser.js           Chargement local du moteur WebAssembly
+    sqlite-browser.js           Initialisation du moteur WebAssembly embarqué
     transfer-native.js          Export par fichier et partage Android
     store.js                    File de modifications et état confirmé
     ui.js                       Affichage et interactions
 scripts/
-  build.mjs                     Bundle et copie des ressources locales
+  build.mjs                     Bundles Web/Android et HTML autonome
   serve.mjs                     Serveur statique de développement
   android-sync.mjs              Génération et synchronisation Android
   android-apk.mjs               Compilation de l’APK de debug
@@ -123,13 +135,20 @@ Les 16 tests couvrent les règles métier, les imports, les transactions et la r
 
 Les tests de l’adaptateur natif utilisent SQLite natif de Node et une connexion asynchrone reproduisant le contrat du plugin. Ils ne remplacent pas une exécution du plugin sur Android.
 
-Dans l’environnement de préparation, l’installation réseau des dépendances a été bloquée puis interrompue. Le bundle, le projet Android généré et l’APK n’ont donc pas pu être construits ; aucun test sur émulateur ou téléphone n’a été réalisé. Les scripts ci-dessus effectuent ces étapes sur une machine équipée.
+Vérification locale du 27 octobre 2026 :
+
+- Les 16 tests passent.
+- `npm run build` produit le bundle Web et le HTML autonome.
+- Le HTML autonome a été exécuté dans Edge/Chromium en mode hors connexion, via `file://`, avec un profil de test vierge : ajout, persistance après rechargement, export JSON et réimport réussis, sans requête HTTP ni erreur JavaScript. La largeur mobile de 390 px ne déborde pas.
+- `npm run android:sync` génère et synchronise le projet `android/` avec SQLite, Filesystem et Share.
+- La compilation APK a été tentée, mais elle est bloquée par l’absence de Java (`JAVA_HOME` non défini et commande `java` absente). Aucun APK ni test sur émulateur ou téléphone n’est donc livré. Installer le JDK 21 et le SDK Android 36, puis lancer `npm run android:apk`.
+
+Le DSFR fourni dans l’archive initiale a été remplacé par des styles locaux : son installation demandait l’acceptation de conditions spécifiques. Aucune acceptation n’a été enregistrée. Le projet n’en dépend plus.
 
 ## Références
 
 - [Capacitor](https://capacitorjs.com/docs)
 - [SQLite natif pour Capacitor](https://github.com/capacitor-community/sqlite)
-- [DSFR](https://www.systeme-de-design.gouv.fr/)
 - [Remix Icon](https://remixicon.com/)
 - [sql.js, uniquement pour la version Web](https://github.com/sql-js/sql.js/)
 

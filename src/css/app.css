@@ -1,5 +1,5 @@
 :root {
-  font-family:Marianne,Arial,sans-serif;
+  font-family:Arial,sans-serif;
   color:#161616;
   background:#f6f6f6;
 }
@@ -332,3 +332,27 @@ a {
 /* Keep content clear of Android display cutouts and gesture navigation. */
 body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
 header { padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); }
+
+/* Local controls shared by the standalone browser and Android builds. */
+body { line-height: 1.5; color: #161616; background: #f6f6f6; }
+.fr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #000091;
+  background: #000091;
+  color: white;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  text-decoration: none;
+}
+.fr-btn--secondary { background: white; color: #000091; }
+.fr-btn:hover:not(:disabled) { background: #1212b8; color: white; }
+.fr-btn--secondary:hover:not(:disabled) { background: #ececfe; color: #000091; }
+.fr-input { font: inherit; max-width: 100%; }
+button, input { touch-action: manipulation; }
+.grid > *, .category > *, .measure-fields > * { min-width: 0; }
