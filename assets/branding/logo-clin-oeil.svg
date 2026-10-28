@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <title>Mes repères — clin d’œil et fourchette souriante</title>
+  <g fill="#0e2b30">
+    <circle cx="196" cy="130" r="18"/>
+    <path d="M292 123h58v14h-58z"/>
+  </g>
+  <!-- Circular smile: radius 180, centre (256, 140), square-cut ends. -->
+  <path d="M112 248 A180 180 0 0 0 400 248"
+        stroke="#0e2b30" stroke-width="24" stroke-linecap="butt"/>
+  <!-- Three straight tines, aligned with the tangent at the arc's right end. -->
+  <path d="M-10-24 H54 V-12 H6 V-6 H54 V6 H6 V12 H54 V24 H-10 Z"
+        transform="translate(400 248) rotate(-53.1301023542)"
+        fill="#0e2b30"/>
+</svg>

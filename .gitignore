@@ -1,6 +1,7 @@
 .DS_Store
 node_modules/
 .cache/android-docker/
+.cache/branding/
 .env
 .env.*
 *.zip

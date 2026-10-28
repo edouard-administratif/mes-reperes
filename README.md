@@ -1,5 +1,10 @@
 # Mes repères
 
+Le logo source est `assets/branding/logo-clin-oeil.svg`. Après modification, exécuter
+`python3 scripts/generate-branding.py` (Python 3 et Inkscape requis) pour régénérer
+les icônes Android, les splash screens et le drawable vectoriel natif. Puis
+recompiler l’APK avec `npm run android:docker`.
+
 Carnet alimentaire personnel en français, décliné en application Web et en application Android avec **Capacitor 8 et SQLite natif**.
 
 ## Préparer le projet
