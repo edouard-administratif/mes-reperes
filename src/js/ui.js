@@ -1,5 +1,5 @@
 import { cats, foodGroups, meals, personalCategories, preparations } from './catalog.js';
-import { labelDate, shiftDate, today, weekRange } from './dates.js';
+import { labelDate, shiftDate, today, weekRange, weekdayLabel } from './dates.js';
 import { foodEntries, removeEntries, categoryCount, produceCount, formatPortions } from './nutrition.js';
 import { chocolateBalance } from './chocolate.js';
 import { readNotebook, importInfo } from './notebook.js';
@@ -246,6 +246,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   function render() {
     const day = $('day').value;
     const [start, end] = weekRange(day);
+    $('dayLabel').textContent = weekdayLabel(day);
     $('week').textContent = `${labelDate(start)} – ${labelDate(end)}`;
     $('produceSummary').textContent = `Fruits + légumes aujourd’hui : ${formatPortions(produceCount(notebook, day))} / 5 portions minimum`;
     renderCategories(day);

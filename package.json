@@ -13,7 +13,8 @@
     "android:sync": "npm run build && node scripts/android-sync.mjs",
     "android:open": "cap open android",
     "android:apk": "npm run android:sync && node scripts/android-apk.mjs",
-    "android:docker": "node scripts/android-docker.mjs"
+    "android:docker": "node scripts/android-docker.mjs",
+    "test:browser": "node scripts/test-browser.mjs"
   },
   "dependencies": {
     "@capacitor/core": "8.5.2",

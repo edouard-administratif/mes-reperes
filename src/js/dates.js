@@ -25,3 +25,8 @@ export function weekRange(day) {
 export function labelDate(day) {
   return new Date(`${day}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 }
+
+export function weekdayLabel(day) {
+  const name = new Date(`${day}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'long' });
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}

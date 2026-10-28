@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { mountUI } from '../src/js/ui.js';
 import { createStore } from '../src/js/store.js';
 import { emptyNotebook } from '../src/js/notebook.js';
+import { today, weekdayLabel } from '../src/js/dates.js';
 
 class Node {
   constructor(tag = 'div') {
@@ -10,6 +11,7 @@ class Node {
     this.children = [];
     this.className = '';
     this.style = {};
+    this.listeners = new Map();
     this.validity = { valid: true };
     this.classList = {
       contains: name => this.className.split(' ').includes(name),
@@ -20,6 +22,8 @@ class Node {
   replaceChildren(...children) { this.children = children; }
   setAttribute(name, value) { this[name] = value; }
   reportValidity() { return true; }
+  addEventListener(name, handler) { this.listeners.set(name, handler); }
+  removeEventListener(name) { this.listeners.delete(name); }
 }
 
 function walk(node, result = []) {
@@ -108,4 +112,42 @@ test('familles repliées au démarrage, une seule ouverte et état conservé apr
   assert.equal(find('group-panel-animal').hidden, false);
   const dairy = find('group-panel-dairy');
   assert(!walk(dairy).some(node => node.className === 'prep-picker'));
+});
+
+
+test('jour de semaine actualisé par date, flèches, aujourd’hui et swipes natifs', context => {
+  const nodes = new Map();
+  const previous = globalThis.document;
+  context.after(() => { globalThis.document = previous; });
+  globalThis.document = {
+    getElementById: id => { if (!nodes.has(id)) nodes.set(id, new Node()); return nodes.get(id); },
+    createElement: tag => new Node(tag),
+    createTextNode: text => ({ textContent: text }),
+    querySelectorAll: () => [],
+  };
+  let persisted = emptyNotebook();
+  const store = createStore({
+    read: () => persisted,
+    async write(notebook) { persisted = structuredClone(notebook); return persisted; },
+  });
+  mountUI(store, { native: true });
+  const day = nodes.get('day');
+  const label = nodes.get('dayLabel');
+  day.value = '2026-11-01';
+  day.onchange();
+  assert.equal(label.textContent, 'Dimanche');
+  nodes.get('next').onclick();
+  assert.equal(day.value, '2026-11-02');
+  assert.equal(label.textContent, 'Lundi');
+  nodes.get('prev').onclick();
+  assert.equal(label.textContent, 'Dimanche');
+  const app = nodes.get('app');
+  const target = { closest: () => false };
+  app.listeners.get('touchstart')({ target, touches: [{ identifier: 1, clientX: 250, clientY: 100 }] });
+  app.listeners.get('touchend')({ touches: [], changedTouches: [{ identifier: 1, clientX: 100, clientY: 102 }] });
+  assert.equal(day.value, '2026-11-02');
+  assert.equal(label.textContent, 'Lundi');
+  nodes.get('today').onclick();
+  assert.equal(day.value, today());
+  assert.equal(label.textContent, weekdayLabel(today()));
 });

@@ -61,6 +61,9 @@ jobs:
       - name: Build using the pinned Android Docker image
         run: npm run android:docker
 
+      - name: Test UI in Chromium
+        run: npm run test:browser
+
       - name: Check and package the APK
         shell: bash
         run: |

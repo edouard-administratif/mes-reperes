@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { cats, foodGroups } from '../src/js/catalog.js';
-import { weekRange, shiftDate, isDate } from '../src/js/dates.js';
+import { weekRange, shiftDate, isDate, weekdayLabel } from '../src/js/dates.js';
 import { readNotebook, emptyNotebook, importInfo } from '../src/js/notebook.js';
 import { categoryCount, foodEntries, removeEntries } from '../src/js/nutrition.js';
 import { chocolateBalance } from '../src/js/chocolate.js';
@@ -67,4 +67,11 @@ test('report du chocolat à J+1 seulement, crédits anciens consommés en premie
   assert.equal(chocolateBalance(mixed, '2026-10-26').carried, 0);
   assert.equal(chocolateBalance(mixed, '2026-10-27').total, 1);
   assert.equal(chocolateBalance([effort('2026-10-25', 'S'), effort('2026-10-26', 'S')], '2026-10-26').total, 0);
+});
+
+
+test('libellés français des sept jours, sans décalage aux changements de mois et d’année', () => {
+  const names = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+  for (let i = 0; i < 7; i++) assert.equal(weekdayLabel(shiftDate('2026-10-26', i)), names[i]);
+  assert.equal(weekdayLabel('2027-01-01'), 'Vendredi');
 });
