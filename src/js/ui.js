@@ -44,6 +44,8 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   let notebook = store.snapshot();
   let selectedMeal = 'Déjeuner';
   const selectedPreparations = {};
+  let expandedGroup = null;
+  const accordionGroups = new Map();
   let lastDeleted = [];
   $('day').value = today();
 
@@ -158,6 +160,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
 
   function renderCategories(day) {
     $('categories').replaceChildren();
+    accordionGroups.clear();
     const visible = cats.filter(category => !notebook.hidden.includes(category[0]));
     for (const [id, label, iconName, ids] of foodGroups) {
       const categories = ids.map(id => visible.find(category => category[0] === id)).filter(Boolean);
@@ -165,11 +168,30 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
       const section = element('section', 'food-group');
       const heading = element('h3');
       heading.id = `group-${id}`;
-      heading.append(icon(iconName), document.createTextNode(label));
+      const toggle = element('button', 'food-group-toggle');
+      toggle.type = 'button';
+      toggle.id = `group-toggle-${id}`;
+      toggle.setAttribute('aria-expanded', String(expandedGroup === id));
+      toggle.setAttribute('aria-controls', `group-panel-${id}`);
+      toggle.append(icon(iconName), element('span', '', label));
+      const panel = element('div', 'food-group-panel');
+      panel.id = `group-panel-${id}`;
+      panel.hidden = expandedGroup !== id;
+      panel.setAttribute('role', 'region');
+      panel.setAttribute('aria-labelledby', toggle.id);
+      toggle.onclick = () => {
+        expandedGroup = expandedGroup === id ? null : id;
+        for (const [groupId, group] of accordionGroups) {
+          group.toggle.setAttribute('aria-expanded', String(groupId === expandedGroup));
+          group.panel.hidden = groupId !== expandedGroup;
+        }
+      };
+      accordionGroups.set(id, { toggle, panel });
+      heading.append(toggle);
       section.setAttribute('aria-labelledby', heading.id);
-      section.append(heading);
-      if (id !== 'dairy') section.append(preparationPicker(id, label));
-      for (const category of categories) section.append(categoryRow(category, day));
+      section.append(heading, panel);
+      if (id !== 'dairy') panel.append(preparationPicker(id, label));
+      for (const category of categories) panel.append(categoryRow(category, day));
       $('categories').append(section);
     }
   }
