@@ -1,0 +1,13 @@
+{
+  "appId": "fr.mesreperes.app",
+  "appName": "Mes repères",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "CapacitorSQLite": {
+      "androidIsEncryption": false
+    }
+  }
+}

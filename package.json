@@ -1,0 +1,31 @@
+{
+  "name": "mes-reperes",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "npm run build && node scripts/serve.mjs",
+    "test": "node --test --test-isolation=none test/*.test.js",
+    "build": "node scripts/build.mjs",
+    "android:sync": "npm run build && node scripts/android-sync.mjs",
+    "android:open": "cap open android",
+    "android:apk": "npm run android:sync && node scripts/android-apk.mjs"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.5.2",
+    "@capacitor/android": "8.5.2",
+    "@capacitor-community/sqlite": "8.1.1",
+    "@capacitor/filesystem": "^8.0.0",
+    "@capacitor/share": "^8.0.0",
+    "@gouvfr/dsfr": "1.15.4",
+    "remixicon": "4.9.0",
+    "sql.js": "1.13.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.2",
+    "esbuild": "^0.25.0"
+  }
+}
