@@ -3,6 +3,7 @@ import { labelDate, shiftDate, today, weekRange } from './dates.js';
 import { foodEntries, removeEntries, categoryCount, produceCount, formatPortions } from './nutrition.js';
 import { chocolateBalance } from './chocolate.js';
 import { readNotebook, importInfo } from './notebook.js';
+import { installDaySwipe } from './day-swipe.js';
 
 const $ = id => document.getElementById(id);
 
@@ -250,7 +251,15 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   }
 
   $('day').onchange = () => { if ($('day').validity.valid && $('day').value) render(); };
-  for (const [id, offset] of [['prev', -1], ['next', 1]]) $(id).onclick = () => { $('day').value = shiftDate($('day').value, offset); render(); };
+  function navigateDay(offset) {
+    $('day').value = shiftDate($('day').value, offset);
+    render();
+  }
+  for (const [id, offset] of [['prev', -1], ['next', 1]]) $(id).onclick = () => navigateDay(offset);
+  if (native) {
+    $('app').classList.add('day-swipe');
+    installDaySwipe($('app'), navigateDay);
+  }
   $('today').onclick = () => { $('day').value = today(); render(); };
   $('export').onclick = async () => {
     $('app').inert = true;

@@ -368,3 +368,6 @@ body { line-height: 1.5; color: var(--color-text); background: var(--color-backg
 .fr-input { font: inherit; max-width: 100%; }
 button, input { touch-action: manipulation; }
 .grid > *, .category > *, .measure-fields > * { min-width: 0; }
+
+/* Keep vertical scrolling and pinch-to-zoom available during native day swipes. */
+.day-swipe { touch-action: pan-y pinch-zoom; }
