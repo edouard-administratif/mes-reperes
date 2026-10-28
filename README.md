@@ -58,6 +58,20 @@ Le cache Gradle et la clé de signature de debug sont conservés dans **`.cache/
 
 Docker doit être démarré et `docker info` doit fonctionner avec ton utilisateur. Ne lance pas `sudo npm`.
 
+### Compiler avec GitHub Actions
+
+Le workflow **Android debug APK** (`.github/workflows/android-debug.yml`) lance les tests puis réutilise `npm run android:docker` sur un runner Ubuntu. Il démarre à chaque push sur `main` et peut être lancé depuis **Actions → Android debug APK → Run workflow**.
+
+Une fois le workflow terminé, ouvrir son exécution et télécharger **Artifacts → mes-reperes-debug-<numéro>**. L’archive contient l’APK et son empreinte SHA-256 ; elle est conservée 14 jours. Aucun envoi sur le Play Store ni création de release GitHub n’est effectué.
+
+Pour signer les builds CI avec ta clé de debug existante, ajouter le secret de dépôt **ANDROID_DEBUG_KEYSTORE_BASE64** dans **Settings → Secrets and variables → Actions**. Il doit contenir le fichier `.cache/android-docker/android/debug.keystore` encodé en base64, avec l’alias et les mots de passe Android de debug habituels. Depuis ta machine, avec GitHub CLI authentifié :
+
+```sh
+base64 -w 0 .cache/android-docker/android/debug.keystore | gh secret set ANDROID_DEBUG_KEYSTORE_BASE64 --repo edouard-administratif/mes-reperes
+```
+
+La clé n’est ni ajoutée au dépôt ni conservée dans le cache de compilation. Sans ce secret, chaque exécution génère une clé temporaire : un APK déjà installé avec une autre clé ne pourra pas être mis à jour directement. Exporter son carnet avant une éventuelle désinstallation. Ce mécanisme concerne uniquement les builds de debug, pas la signature de production.
+
 ## Web
 
 ```sh
