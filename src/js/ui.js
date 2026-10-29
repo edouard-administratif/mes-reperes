@@ -203,38 +203,46 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
 
   function renderSettings() {
     $('settings').replaceChildren();
-    for (const [id, , name, base, kind, period, unit] of cats.filter(category => category[3] !== null)) {
-      const label = element('label', 'setting', `${name} · ${kind === 'max' ? 'max' : kind === 'min' ? 'min' : 'objectif'} ${unit}/${period === 'day' ? 'jour' : 'semaine'}`);
-      const input = element('input', 'fr-input');
-      Object.assign(input, { type: 'number', min: 0, max: 10000, step: 0.01, value: notebook.targets[id] ?? base });
-      input.onchange = () => {
-        if (!input.validity.valid || input.value === '') { renderSettings(); return; }
-        const value = Number(input.value);
-        return change(draft => { draft.targets[id] = value; });
-      };
-      label.append(input);
-      $('settings').append(label);
-    }
     $('categorySettings').replaceChildren();
-    for (const category of cats) {
-      const [id, iconName, name] = category;
-      const row = element('div', 'entry');
-      const label = element('label', 'category-choice');
-      const input = element('input');
-      input.type = 'checkbox';
-      input.checked = notebook.hidden.includes(id);
-      input.setAttribute('aria-label', `Masquer : ${name}`);
-      input.onchange = () => change(draft => {
-        draft.hidden = input.checked ? [...new Set([...draft.hidden, id])] : draft.hidden.filter(value => value !== id);
-      });
-      label.append(input, icon(iconName), document.createTextNode(`Masquer : ${name}`));
-      row.append(label);
-      if (id !== 'animalTotal') row.append(button(`Noter une portion : ${name}`, () => change(draft => {
-        draft.entries.push(...foodEntries(category, { day: $('day').value, meal: selectedMeal, preparation: preparationFor(id) }));
-      }), 'ri-add-line'));
-      $('categorySettings').append(row);
+    for (const group of foodGroups) {
+      const { section, panel } = familySection(group, true);
+      for (const categoryId of group[3]) {
+        const [id, iconName, name, base, kind, period, unit] = cats.find(category => category[0] === categoryId);
+        const row = element('div', 'category-setting');
+        const label = element('label', 'category-choice');
+        const input = element('input');
+        input.type = 'checkbox';
+        input.checked = notebook.hidden.includes(id);
+        input.setAttribute('aria-label', `Masquer : ${name}`);
+        input.onchange = () => change(draft => {
+          draft.hidden = input.checked ? [...new Set([...draft.hidden, id])] : draft.hidden.filter(value => value !== id);
+        });
+        label.append(input, icon(iconName), document.createTextNode(`Masquer : ${name}`));
+        row.append(label);
+        if (id !== 'animalTotal') row.append(button(`Noter une portion : ${name}`, () => {
+          const entries = foodEntries(cats.find(category => category[0] === id), {
+            day: $('day').value, meal: selectedMeal, preparation: preparationFor(id),
+          });
+          return change(draft => { draft.entries.push(...entries); });
+        }, 'ri-add-line'));
+        if (base !== null) {
+          const targetLabel = element('label', 'setting', `${kind === 'max' ? 'Maximum' : kind === 'min' ? 'Minimum' : 'Objectif'} · ${unit}/${period === 'day' ? 'jour' : 'semaine'}`);
+          const target = element('input', 'fr-input');
+          Object.assign(target, { type: 'number', min: 0, max: 10000, step: 0.01, value: notebook.targets[id] ?? base });
+          target.setAttribute('aria-label', `Repère : ${name}`);
+          target.onchange = () => {
+            if (!target.validity.valid || target.value === '') { renderSettings(); return; }
+            const value = Number(target.value);
+            return change(draft => { draft.targets[id] = value; });
+          };
+          targetLabel.append(target);
+          row.append(targetLabel);
+        }
+        panel.append(row);
+      }
+      $('categorySettings').append(section);
     }
-    $('categorySettings').append(element('p', 'detail', 'La saisie propose les catégories déjà consommées. Le bouton + note une première portion. Masquer conserve l’historique.'));
+    $('categorySettings').append(element('p', 'detail', 'La saisie propose les catégories déjà consommées. Coche « Masquer » pour en exclure une sans effacer son historique. Le bouton + note une première portion pour le jour et le repas sélectionnés.'));
   }
 
   function renderMeasurements(week) {
