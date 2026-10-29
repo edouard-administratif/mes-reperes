@@ -194,10 +194,14 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
       $(`${prefix}group-toggle-${id}`)?.focus?.({ preventScroll: true });
     };
     heading.append(toggle);
-    const link = button(settings ? `Saisir · ${label}` : `Gérer · ${label}`, () => openFamily(id, !settings));
-    link.className += ' family-link';
+    const link = element('a', 'fr-link family-link', settings ? 'Saisir dans cette famille' : 'Gérer cette famille');
+    link.href = `#${settings ? '' : 'settings-'}group-toggle-${id}`;
+    link.setAttribute('aria-label', settings ? `Saisir · ${label}` : `Gérer · ${label}`);
+    link.append(icon('ri-arrow-right-line'));
+    link.onclick = event => { event?.preventDefault(); openFamily(id, !settings); };
     section.setAttribute('aria-labelledby', toggle.id);
-    section.append(heading, link, panel);
+    panel.append(link);
+    section.append(heading, panel);
     return { section, panel };
   }
 

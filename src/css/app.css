@@ -404,7 +404,10 @@ button, input { touch-action: manipulation; }
 /* Keep vertical scrolling and pinch-to-zoom available during native day swipes. */
 .day-swipe { touch-action: pan-y pinch-zoom; }
 
-.family-link { margin: 0 16px 10px; min-height: 28px; padding: 3px 7px; font-size: 12px; }
+/* Text links inspired by the DSFR link component. */
+.family-link { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 12px; color: var(--color-primary); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+.family-link:hover { text-decoration-thickness: 2px; }
+.family-link:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 4px; }
 .category-setting { padding: 12px 0; border-bottom: 1px solid var(--color-primary-soft); }
 .category-choice { display: flex; align-items: center; gap: 8px; min-width: 0; }
 
