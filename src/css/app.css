@@ -406,6 +406,9 @@ button, input { touch-action: manipulation; }
 
 .family-link { margin: 0 16px 10px; min-height: 28px; padding: 3px 7px; font-size: 12px; }
 .category-setting { padding: 12px 0; border-bottom: 1px solid var(--color-primary-soft); }
-.category-choice { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-.category-choice input { width: 20px; height: 20px; accent-color: var(--color-primary); }
+.category-choice { display: flex; align-items: center; gap: 8px; min-width: 0; }
+
 .category-setting .setting { margin-top: 8px; }
+
+.category-setting-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.category-setting-header .category-actions { flex-shrink: 0; margin-left: auto; }

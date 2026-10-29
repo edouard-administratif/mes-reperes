@@ -68,7 +68,7 @@ try {
           check(persisted.entries.length === 2, 'Historique conservé');
           document.querySelector('[aria-label="Saisir · Fruits et desserts"]').click();
           check(!byId('group-panel-extras').hidden && byId('group-panel-animal').hidden, 'Retour vers la saisie dépliée');
-          document.querySelector('[aria-label="Masquer : Volaille"]').click();
+          document.querySelector('[aria-label="Afficher : Volaille"]').click();
           await settle();
           check(document.querySelector('[aria-label="Ajouter : Volaille"]'), 'Catégorie restaurée');
           check(!document.querySelector('[aria-label="Ajouter : Verre de vin"]'), 'Catégorie jamais consommée absente');

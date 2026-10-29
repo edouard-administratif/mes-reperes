@@ -225,17 +225,19 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
       for (const categoryId of group[3]) {
         const [id, iconName, name, base, kind, period, unit] = cats.find(category => category[0] === categoryId);
         const row = element('div', 'category-setting');
-        const label = element('label', 'category-choice');
-        const input = element('input');
-        input.type = 'checkbox';
-        input.checked = notebook.hidden.includes(id);
-        input.setAttribute('aria-label', `Masquer : ${name}`);
-        input.onchange = () => change(draft => {
-          draft.hidden = input.checked ? [...new Set([...draft.hidden, id])] : draft.hidden.filter(value => value !== id);
-        });
-        label.append(input, icon(iconName), document.createTextNode(`Masquer : ${name}`));
-        row.append(label);
-        if (id !== 'animalTotal') row.append(button(`Noter une portion : ${name}`, () => {
+        const header = element('div', 'category-setting-header');
+        const nameLabel = element('span', 'category-choice');
+        nameLabel.append(icon(iconName), document.createTextNode(name));
+        const actions = element('div', 'category-actions');
+        const hidden = notebook.hidden.includes(id);
+        const visibility = button(`${hidden ? 'Afficher' : 'Masquer'} : ${name}`, () => change(draft => {
+          draft.hidden = hidden ? draft.hidden.filter(value => value !== id) : [...draft.hidden, id];
+        }), hidden ? 'ri-eye-off-line' : 'ri-eye-line');
+        visibility.setAttribute('aria-pressed', String(hidden));
+        actions.append(visibility);
+        header.append(nameLabel, actions);
+        row.append(header);
+        if (id !== 'animalTotal') actions.append(button(`Noter une portion : ${name}`, () => {
           const entries = foodEntries(cats.find(category => category[0] === id), {
             day: $('day').value, meal: selectedMeal, preparation: preparationFor(id),
           });
@@ -258,7 +260,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
       }
       $('categorySettings').append(section);
     }
-    $('categorySettings').append(element('p', 'detail', 'La saisie propose les catégories déjà consommées. Coche « Masquer » pour en exclure une sans effacer son historique. Le bouton + note une première portion pour le jour et le repas sélectionnés.'));
+    $('categorySettings').append(element('p', 'detail', 'La saisie propose les catégories déjà consommées. Utilise l’œil pour masquer une catégorie sans effacer son historique. Le bouton + note une première portion pour le jour et le repas sélectionnés.'));
   }
 
   function renderMeasurements(week) {
