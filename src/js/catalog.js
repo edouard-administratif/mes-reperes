@@ -22,7 +22,7 @@ export const cats = [
   ['unsweetenedDairy','ri-cup-line','Laitage sans sucre',4,'max','week','portion(s)'],
   ['cheese','ri-restaurant-2-line','Fromage',3,'max','week','portion(s)'],
   ['dessert','ri-cake-3-line','Dessert / produit sucré',null,'track','week','portion(s)'],
-  ['fried','ri-fire-line','Friture',null,'track','week','portion(s)'],
+  ['fried','ri-temp-hot-line','Friture',null,'track','week','portion(s)'],
   ['richsauce','ri-bowl-line','Sauce riche',null,'track','week','portion(s)']
 ];
 
