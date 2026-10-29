@@ -36,7 +36,7 @@ export const foodGroups = [
 ];
 
 export const animalCategories = ["meat", "poultry", "charcuterie", "fish", "oilyfish"];
-export const preparations = [["ri-leaf-line", "Nature"], ["ri-fire-line", "Grillé"], ["ri-blaze-line", "Vapeur"], ["ri-bowl-line", "En sauce"]
+export const preparations = [["ri-leaf-line", "Nature"], ["ri-fire-line", "Grillé"], ["ri-temp-hot-line", "Frit"], ["ri-bowl-line", "En sauce"]
 ];
 export const meals = [["ri-sun-foggy-line", "Petit-déjeuner"], ["ri-sun-line", "Déjeuner"], ["ri-moon-line", "Dîner"], ["ri-apple-line", "Collation"]
 ];
