@@ -115,7 +115,7 @@ Les deux adaptateurs partagent les mêmes tables, règles de validation et règl
 
 - **Android :** l’export crée un JSON dans le cache privé puis ouvre la boîte de partage Android pour l’enregistrer ou l’envoyer avec une application choisie. Aucune permission d’accès général aux fichiers n’est nécessaire. L’import utilise le sélecteur de fichiers de la WebView.
 - **Web :** l’export télécharge le JSON et l’import ouvre le sélecteur de fichiers du navigateur.
-- L’import remplace le carnet après confirmation et transaction réussie. Les catégories inconnues sont ignorées et signalées ; les sauces devenues orphelines sont écartées.
+- L’import remplace le carnet après confirmation et transaction réussie. Les catégories inconnues sont ignorées et signalées.
 - Le format est celui de la version courante : aucune migration d’un ancien format ni conversion de grammes n’est implémentée.
 
 Pour passer du navigateur à Android, exporter le carnet JSON puis l’importer dans l’application. Les données de la version Web ne sont pas transférées automatiquement. Garder une copie exportée : effacer les données de l’application ou la désinstaller peut supprimer le carnet local.
@@ -134,7 +134,7 @@ src/
     catalog.js                  Catégories, familles, repas et préparations
     dates.js                    Dates et semaines lundi–dimanche
     notebook.js                 Validation du format et imports
-    nutrition.js                Compteurs et sauces associées
+    nutrition.js                Compteurs et saisie des portions
     chocolate.js                Crédits chocolat et expiration
     schema.js                   Tables SQLite communes
     sqlite-records.js           Conversion des lignes et requêtes liées
@@ -162,7 +162,7 @@ test/                           Tests de logique, stockage et contrôleur
 - Saisie des aliments par portions, journée, repas et famille.
 - Maximums personnels et objectifs journaliers ou hebdomadaires modifiables.
 - Préparation indépendante par famille, sauf laitages et fromages.
-- « En sauce » ajoute une sauce riche liée ; supprimer l’aliment retire aussi sa sauce. L’annulation restaure les deux.
+- Les préparations sont des étiquettes : la sauce riche est une catégorie indépendante à saisir manuellement.
 - Mesures hebdomadaires de poids et de masse graisseuse.
 - Efforts S/M/L : 2 S ou 1 M donnent un carré de chocolat, 1 L en donne deux. Les carrés expirent à la fin du lendemain ; les plus anciens sont consommés en premier.
 
@@ -191,3 +191,5 @@ Le DSFR fourni dans l’archive initiale a été remplacé par des styles locaux
 - [sql.js, uniquement pour la version Web](https://github.com/sql-js/sql.js/)
 
 Le carnet est un outil personnel ; il ne représente pas un service officiel de l’État, LeDiet ou WeightWatchers. Les règles nutritionnelles personnelles ne constituent pas une prescription médicale. Les sources des repères généraux restent accessibles dans l’application.
+
+La saisie quotidienne propose les catégories déjà consommées dans le carnet. Dans les réglages regroupés par famille, la case « Masquer » permet de forcer leur masquage sans effacer l’historique ; le bouton + note une première portion pour le jour et le repas sélectionnés. Les liens sous les titres ouvrent la famille correspondante dans les réglages ou la saisie. Les familles sont repliées initialement et une seule s’ouvre à la fois dans chaque espace. Vin, bière et autres alcools sont suivis en verres, sans plafond prédéfini, dans une famille dédiée ; les biscuits apéritifs figurent dans les entrées.

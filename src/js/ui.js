@@ -197,9 +197,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     const link = button(settings ? `Saisir · ${label}` : `Gérer · ${label}`, () => openFamily(id, !settings));
     link.className += ' family-link';
     section.setAttribute('aria-labelledby', toggle.id);
-    section.append(heading);
-    if (!settings) section.append(link);
-    section.append(panel);
+    section.append(heading, link, panel);
     return { section, panel };
   }
 

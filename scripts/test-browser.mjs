@@ -33,14 +33,14 @@ try {
           check(!byId('app').inert, 'Sauvegarde non terminée');
         };
         (async () => {
-          let persisted = emptyNotebook();
+          let persisted = { ...emptyNotebook(), entries: [{ id: 'existing', date: '2026-10-25', type: 'food', cat: 'poultry', text: 'Volaille', portions: 1, meal: 'Déjeuner', preparation: 'Nature' }] };
           const store = createStore({
             read: () => persisted,
             write: async notebook => { persisted = structuredClone(notebook); return persisted; },
           });
           mountUI(store, { native: true });
-          const toggles = [...document.querySelectorAll('.food-group-toggle')];
-          check(toggles.length === 6, 'Six familles attendues');
+          const toggles = [...document.querySelectorAll('#categories .food-group-toggle')];
+          check(toggles.length === 7, 'Sept familles attendues');
           for (const toggle of toggles) {
             check(toggle.getAttribute('aria-expanded') === 'false', 'Famille ouverte au démarrage');
             check(getComputedStyle(byId(toggle.getAttribute('aria-controls'))).display === 'none', 'Panneau replié visible');
@@ -58,8 +58,23 @@ try {
           document.querySelector('[aria-label="En sauce · Viandes et poissons"]').click();
           document.querySelector('[aria-label="Ajouter : Volaille"]').click();
           await settle();
-          check(persisted.entries.length === 2, 'Aliment et sauce associés');
+          check(persisted.entries.length === 2, 'Aliment seul, sans sauce automatique');
           check(!byId('group-panel-animal').hidden, 'État conservé après sauvegarde');
+          document.querySelector('[aria-label="Gérer · Viandes et poissons"]').click();
+          check(byId('categoryManagement').open && !byId('settings-group-panel-animal').hidden, 'Lien vers les réglages dépliés');
+          document.querySelector('[aria-label="Masquer : Volaille"]').click();
+          await settle();
+          check(!document.querySelector('[aria-label="Ajouter : Volaille"]'), 'Catégorie décochée masquée');
+          check(persisted.entries.length === 2, 'Historique conservé');
+          document.querySelector('[aria-label="Saisir · Fruits et desserts"]').click();
+          check(!byId('group-panel-extras').hidden && byId('group-panel-animal').hidden, 'Retour vers la saisie dépliée');
+          document.querySelector('[aria-label="Masquer : Volaille"]').click();
+          await settle();
+          check(document.querySelector('[aria-label="Ajouter : Volaille"]'), 'Catégorie restaurée');
+          check(!document.querySelector('[aria-label="Ajouter : Verre de vin"]'), 'Catégorie jamais consommée absente');
+          document.querySelector('[aria-label="Noter une portion : Verre de vin"]').click();
+          await settle();
+          check(document.querySelector('[aria-label="Ajouter : Verre de vin"]'), 'Première consommation rend la catégorie disponible');
           const swipe = (dx, dy = 0, target = byId('produceSummary')) => {
             const start = new Touch({ identifier: 1, target, clientX: 200, clientY: 150 });
             const end = new Touch({ identifier: 1, target, clientX: 200 + dx, clientY: 150 + dy });
