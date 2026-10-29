@@ -15,7 +15,7 @@ export const cats = [
   ['eggs','ri-seedling-line','Œufs',null,'track','week','portion(s)'],
   ['pulses','ri-seedling-line','Légumes secs',2,'min','week','portion(s)'],
 ['salad','ri-leaf-line','Légumes / salade',null,'track','day','portion(s)'],
-  ['fruit','ri-apple-line','Fruit',null,'track','day','portion(s)'],
+  ['fruit','ri-plant-line','Fruit',null,'track','day','portion(s)'],
   ['wholegrain','ri-seedling-line','Féculents complets',null,'track','day','portion(s)'],
   ['starch','ri-bowl-line','Autres féculents',null,'track','day','portion(s)'],
   ['nuts','ri-seedling-line','Fruits à coque non salés',1,'goal','day','poignée(s)'],
