@@ -1,4 +1,4 @@
-import { cats, foodGroups, meals, personalCategories, preparations } from './catalog.js';
+import { animalCategories, cats, foodGroups, meals, personalCategories, preparations } from './catalog.js';
 import { labelDate, shiftDate, today, weekRange, weekdayLabel } from './dates.js';
 import { foodEntries, removeEntries, categoryCount, produceCount, formatPortions } from './nutrition.js';
 import { chocolateBalance } from './chocolate.js';
@@ -45,7 +45,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   let selectedMeal = 'Déjeuner';
   const selectedPreparations = {};
   let expandedGroup = null;
-  const accordionGroups = new Map();
+  let expandedSettingsGroup = null;
   let lastDeleted = [];
   $('day').value = today();
 
@@ -125,7 +125,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     const row = element('div', 'category');
     const content = element('div');
     const title = element('div', 'name');
-    title.append(icon(iconName), document.createTextNode(name));
+    title.append(icon(iconName), document.createTextNode(`Masquer : ${name}`));
     const label = kind === 'max' ? (personalCategories.includes(id) ? 'maximum personnel' : 'maximum') : kind === 'min' ? 'minimum' : 'objectif';
     let text = target === null ? `${formatPortions(count)} ${unit} · suivi sans plafond` :
       `${formatPortions(count)} / ${formatPortions(target)} ${unit} · ${label}`;
@@ -158,40 +158,45 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     return row;
   }
 
+  function familySection([id, label, iconName], settings) {
+    const prefix = settings ? 'settings-' : '';
+    const expanded = settings ? expandedSettingsGroup : expandedGroup;
+    const section = element('section', 'food-group');
+    const heading = element('h3');
+    const toggle = element('button', 'food-group-toggle');
+    toggle.type = 'button';
+    toggle.id = `${prefix}group-toggle-${id}`;
+    toggle.setAttribute('aria-expanded', String(expanded === id));
+    toggle.setAttribute('aria-controls', `${prefix}group-panel-${id}`);
+    toggle.append(icon(iconName), element('span', '', label));
+    const panel = element('div', 'food-group-panel');
+    panel.id = `${prefix}group-panel-${id}`;
+    panel.hidden = expanded !== id;
+    panel.setAttribute('role', 'region');
+    panel.setAttribute('aria-labelledby', toggle.id);
+    toggle.onclick = () => {
+      if (settings) { expandedSettingsGroup = expanded === id ? null : id; renderSettings(); }
+      else { expandedGroup = expanded === id ? null : id; renderCategories($('day').value); }
+      $(`${prefix}group-toggle-${id}`)?.focus?.({ preventScroll: true });
+    };
+    heading.append(toggle);
+    section.setAttribute('aria-labelledby', toggle.id);
+    section.append(heading, panel);
+    return { section, panel };
+  }
+
   function renderCategories(day) {
     $('categories').replaceChildren();
-    accordionGroups.clear();
-    const visible = cats.filter(category => !notebook.hidden.includes(category[0]));
-    for (const [id, label, iconName, ids] of foodGroups) {
-      const categories = ids.map(id => visible.find(category => category[0] === id)).filter(Boolean);
-      if (!categories.length) continue;
-      const section = element('section', 'food-group');
-      const heading = element('h3');
-      heading.id = `group-${id}`;
-      const toggle = element('button', 'food-group-toggle');
-      toggle.type = 'button';
-      toggle.id = `group-toggle-${id}`;
-      toggle.setAttribute('aria-expanded', String(expandedGroup === id));
-      toggle.setAttribute('aria-controls', `group-panel-${id}`);
-      toggle.append(icon(iconName), element('span', '', label));
-      const panel = element('div', 'food-group-panel');
-      panel.id = `group-panel-${id}`;
-      panel.hidden = expandedGroup !== id;
-      panel.setAttribute('role', 'region');
-      panel.setAttribute('aria-labelledby', toggle.id);
-      toggle.onclick = () => {
-        expandedGroup = expandedGroup === id ? null : id;
-        for (const [groupId, group] of accordionGroups) {
-          group.toggle.setAttribute('aria-expanded', String(groupId === expandedGroup));
-          group.panel.hidden = groupId !== expandedGroup;
-        }
-      };
-      accordionGroups.set(id, { toggle, panel });
-      heading.append(toggle);
-      section.setAttribute('aria-labelledby', heading.id);
-      section.append(heading, panel);
-      if (id !== 'dairy') panel.append(preparationPicker(id, label));
-      for (const category of categories) panel.append(categoryRow(category, day));
+    for (const group of foodGroups) {
+      const [id, label, , ids] = group;
+      const categories = ids.map(id => cats.find(category => category[0] === id))
+        .filter(category => !notebook.hidden.includes(category[0]) && notebook.entries.some(entry =>
+          entry.type === 'food' && (entry.cat === category[0] || category[0] === 'animalTotal' && animalCategories.includes(entry.cat))));
+      const { section, panel } = familySection(group, false);
+      if (categories.length) {
+        if (!['dairy', 'drinks'].includes(id)) panel.append(preparationPicker(id, label));
+        for (const category of categories) panel.append(categoryRow(category, day));
+      } else panel.append(element('p', 'detail', 'Aucune catégorie déjà consommée et visible. Utilise « Gérer » pour noter une première portion.'));
       $('categories').append(section);
     }
   }
@@ -211,17 +216,25 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
       $('settings').append(label);
     }
     $('categorySettings').replaceChildren();
-    for (const [id, iconName, name] of cats) {
-      const hidden = notebook.hidden.includes(id);
+    for (const category of cats) {
+      const [id, iconName, name] = category;
       const row = element('div', 'entry');
-      const label = element('span');
-      label.append(icon(iconName), document.createTextNode(` ${name}`));
-      row.append(label, button(hidden ? 'Restaurer' : 'Masquer', () => change(draft => {
-        draft.hidden = hidden ? draft.hidden.filter(value => value !== id) : [...draft.hidden, id];
-      })));
+      const label = element('label', 'category-choice');
+      const input = element('input');
+      input.type = 'checkbox';
+      input.checked = notebook.hidden.includes(id);
+      input.setAttribute('aria-label', `Masquer : ${name}`);
+      input.onchange = () => change(draft => {
+        draft.hidden = input.checked ? [...new Set([...draft.hidden, id])] : draft.hidden.filter(value => value !== id);
+      });
+      label.append(input, icon(iconName), document.createTextNode(`Masquer : ${name}`));
+      row.append(label);
+      if (id !== 'animalTotal') row.append(button(`Noter une portion : ${name}`, () => change(draft => {
+        draft.entries.push(...foodEntries(category, { day: $('day').value, meal: selectedMeal, preparation: preparationFor(id) }));
+      }), 'ri-add-line'));
       $('categorySettings').append(row);
     }
-    $('categorySettings').append(element('p', 'detail', 'Masquer une catégorie conserve son historique.'));
+    $('categorySettings').append(element('p', 'detail', 'La saisie propose les catégories déjà consommées. Le bouton + note une première portion. Masquer conserve l’historique.'));
   }
 
   function renderMeasurements(week) {

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { mountUI } from '../src/js/ui.js';
 import { createStore } from '../src/js/store.js';
 import { emptyNotebook } from '../src/js/notebook.js';
+import { food } from './helpers.js';
 import { today, weekdayLabel } from '../src/js/dates.js';
 
 class Node {
@@ -43,7 +44,7 @@ test('interface : attente de la sauvegarde, sauce indépendante et erreur persis
     createTextNode: text => ({ textContent: text }),
     querySelectorAll: () => [],
   };
-  let persisted = emptyNotebook();
+  let persisted = { ...emptyNotebook(), entries: [food('existing', 'poultry')] };
   let fail = false;
   const store = createStore({
     read: () => persisted,
@@ -59,13 +60,13 @@ test('interface : attente de la sauvegarde, sauce indépendante et erreur persis
   const sauce = walk(root).find(node => node['aria-label'] === 'En sauce · Viandes et poissons');
   sauce.onclick();
   await click('Ajouter : Volaille');
-  assert.equal(persisted.entries.length, 1);
-  assert.equal(persisted.entries[0].preparation, 'En sauce');
+  assert.equal(persisted.entries.length, 2);
+  assert.equal(persisted.entries[1].preparation, 'En sauce');
   assert.equal(nodes.get('app').inert, false);
   assert.match(nodes.get('storageStatus').textContent, /enregistré/);
   fail = true;
   await click('Ajouter : Volaille');
-  assert.equal(persisted.entries.length, 1);
+  assert.equal(persisted.entries.length, 2);
   assert.match(nodes.get('storageStatus').textContent, /non enregistrée/);
   assert.match(nodes.get('storageStatus').textContent, /Stockage indisponible/);
   assert.equal(nodes.get('app').inert, false);
@@ -81,7 +82,7 @@ test('familles repliées au démarrage, une seule ouverte et état conservé apr
     createTextNode: text => ({ textContent: text }),
     querySelectorAll: () => [],
   };
-  let persisted = emptyNotebook();
+  let persisted = { ...emptyNotebook(), entries: [food('existing', 'poultry')] };
   const store = createStore({
     read: () => persisted,
     async write(notebook) { persisted = structuredClone(notebook); return persisted; },
@@ -125,7 +126,7 @@ test('jour de semaine actualisé par date, flèches, aujourd’hui et swipes nat
     createTextNode: text => ({ textContent: text }),
     querySelectorAll: () => [],
   };
-  let persisted = emptyNotebook();
+  let persisted = { ...emptyNotebook(), entries: [food('existing', 'poultry')] };
   const store = createStore({
     read: () => persisted,
     async write(notebook) { persisted = structuredClone(notebook); return persisted; },
