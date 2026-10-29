@@ -58,6 +58,6 @@ export function readNotebook(data) {
 }
 
 export function importInfo(result) {
-  const ignored = result.ignoredCount ? ` ${result.ignoredCount} entrée(s) ignorée(s) : catégorie(s) inconnue(s) « ${result.ignoredCategories.join(', ')} ».` : '';
+  const ignored = result.ignoredCount ? ` ${result.ignoredCount} entrée(s) ignorée(s) : catégorie(s) inconnue(s) « ${result.ignoredCategories.join(', ')} ».` : '';
   return ignored;
 }

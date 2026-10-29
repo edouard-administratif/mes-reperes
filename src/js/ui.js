@@ -216,7 +216,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
       if (categories.length) {
         if (!['dairy', 'drinks'].includes(id)) panel.append(preparationPicker(id, label));
         for (const category of categories) panel.append(categoryRow(category, day));
-      } else panel.append(element('p', 'detail', 'Aucune catégorie déjà consommée et visible. Utilise « Gérer » pour noter une première portion.'));
+      } else panel.append(element('p', 'detail', 'Aucune catégorie déjà consommée et visible. Utilise « Gérer » pour noter une première portion.'));
       $('categories').append(section);
     }
   }
