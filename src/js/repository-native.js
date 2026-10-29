@@ -14,6 +14,7 @@ export async function openNativeRepository({ connection, close }) {
     ['entries', 'SELECT * FROM entries ORDER BY position'],
     ['measurements', 'SELECT * FROM measurements'],
     ['targets', 'SELECT * FROM targets'],
+    ['unlimited', 'SELECT * FROM unlimited_categories'],
     ['hidden', 'SELECT * FROM hidden_categories'],
   ]) {
     tables[key] = (await connection.query(query)).values ?? [];

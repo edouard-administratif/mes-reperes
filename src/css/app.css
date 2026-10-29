@@ -415,3 +415,10 @@ button, input { touch-action: manipulation; }
 
 .category-setting-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .category-setting-header .category-actions { flex-shrink: 0; margin-left: auto; }
+
+.limit-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.limit-controls .setting { flex: 1 1 140px; min-width: 0; flex-direction: column; align-items: stretch; }
+.limit-controls .fr-input { width: 100%; }
+.unlimited-choice { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; }
+.unlimited-choice input { width: 20px; height: 20px; accent-color: var(--color-primary); }
+.fr-input:disabled { background: var(--color-surface-muted); color: var(--color-text); opacity: .6; cursor: not-allowed; }

@@ -20,5 +20,6 @@ export const schema = `
     fat REAL CHECK(fat > 0 AND fat < 100)
   );
   CREATE TABLE IF NOT EXISTS targets (category TEXT PRIMARY KEY, value REAL NOT NULL CHECK(value >= 0));
+  CREATE TABLE IF NOT EXISTS unlimited_categories (category TEXT PRIMARY KEY);
   CREATE TABLE IF NOT EXISTS hidden_categories (category TEXT PRIMARY KEY);
 `;

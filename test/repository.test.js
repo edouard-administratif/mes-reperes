@@ -19,7 +19,7 @@ test('persistance SQLite réelle : repas, mesures, limites et catégories masqu�
     { id: 'effort', date: '2026-10-25', type: 'physical', text: 'Effort S', level: 'S' },
     { id: 'choc', date: '2026-10-25', type: 'chocolate', text: 'Carré' }];
   notebook.measurements['2026-10-19'] = { weight: 72.5, fat: 24 };
-  notebook.targets = { meat: 2, charcuterie: 0 };
+  notebook.targets = { meat: 2, charcuterie: 0, starter: null, fruit: 3 };
   notebook.hidden = ['dessert'];
   await repository.write(notebook);
   const saved = await persistence.read();

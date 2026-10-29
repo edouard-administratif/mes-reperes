@@ -1,6 +1,6 @@
 import { animalCategories, cats, foodGroups, meals, preparations } from './catalog.js';
 import { labelDate, shiftDate, today, weekRange, weekdayLabel } from './dates.js';
-import { foodEntries, removeEntries, categoryCount, produceCount, formatPortions } from './nutrition.js';
+import { foodEntries, removeEntries, categoryLimit, categoryCount, produceCount, formatPortions } from './nutrition.js';
 import { chocolateBalance } from './chocolate.js';
 import { readNotebook, importInfo } from './notebook.js';
 import { installDaySwipe } from './day-swipe.js';
@@ -119,25 +119,24 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   }
 
   function categoryRow(category, day) {
-    const [id, iconName, name, base, kind, period, unit] = category;
-    const target = base === null ? null : notebook.targets[id] ?? base;
+    const [id, iconName, name, , period, unit] = category;
+    const target = categoryLimit(notebook, category);
     const count = categoryCount(notebook, category, day);
     const row = element('div', 'category');
     const content = element('div');
     const title = element('div', 'name');
     title.append(icon(iconName), document.createTextNode(name));
-    const label = kind === 'max' ? 'maximum' : kind === 'min' ? 'minimum' : 'objectif';
-    let text = target === null ? `${formatPortions(count)} ${unit} · suivi sans plafond` :
-      `${formatPortions(count)} / ${formatPortions(target)} ${unit} · ${label}`;
+    let text = target === null ? `${formatPortions(count)} ${unit} · illimité` :
+      `${formatPortions(count)} / ${formatPortions(target)} ${unit} · maximum`;
     text += period === 'day' ? ' / jour' : ' / semaine';
     if (Object.hasOwn(notebook.targets, id)) text += ' · personnalisé';
-    if (target !== null && count >= target) text += kind === 'max' && count > target ? ' · dépassé' : ' · atteint';
-    content.append(title, element('div', `detail${kind === 'max' && count > target ? ' over' : ''}`, text));
+    if (target !== null && count >= target) text += count > target ? ' · dépassé' : ' · atteint';
+    content.append(title, element('div', `detail${target !== null && count > target ? ' over' : ''}`, text));
     if (target !== null) {
       const bar = element('div', 'bar');
       const fill = element('div', 'fill');
       fill.style.width = `${target === 0 ? (count ? 100 : 0) : Math.min(100, count / target * 100)}%`;
-      if (kind === 'max' && count > target) fill.style.background = '#c88e65';
+      if (count > target) fill.style.background = '#c88e65';
       bar.append(fill);
       content.append(bar);
     }
@@ -227,7 +226,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     for (const group of foodGroups) {
       const { section, panel } = familySection(group, true);
       for (const categoryId of group[3]) {
-        const [id, iconName, name, base, kind, period, unit] = cats.find(category => category[0] === categoryId);
+        const [id, iconName, name, base, period, unit] = cats.find(category => category[0] === categoryId);
         const row = element('div', 'category-setting');
         const header = element('div', 'category-setting-header');
         const nameLabel = element('span', 'category-choice');
@@ -247,19 +246,29 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
           });
           return change(draft => { draft.entries.push(...entries); });
         }, 'ri-add-line'));
-        if (base !== null) {
-          const targetLabel = element('label', 'setting', `${kind === 'max' ? 'Maximum' : kind === 'min' ? 'Minimum' : 'Objectif'} · ${unit}/${period === 'day' ? 'jour' : 'semaine'}`);
-          const target = element('input', 'fr-input');
-          Object.assign(target, { type: 'number', min: 0, max: 10000, step: 0.01, value: notebook.targets[id] ?? base });
-          target.setAttribute('aria-label', `Repère : ${name}`);
-          target.onchange = () => {
-            if (!target.validity.valid || target.value === '') { renderSettings(); return; }
-            const value = Number(target.value);
-            return change(draft => { draft.targets[id] = value; });
-          };
-          targetLabel.append(target);
-          row.append(targetLabel);
-        }
+        const limit = categoryLimit(notebook, cats.find(category => category[0] === id));
+        const controls = element('div', 'limit-controls');
+        const targetLabel = element('label', 'setting', `Maximum · ${unit}/${period === 'day' ? 'jour' : 'semaine'}`);
+        const target = element('input', 'fr-input');
+        Object.assign(target, { type: 'number', min: 0, max: 10000, step: 0.01, value: limit ?? base ?? 0, disabled: limit === null });
+        target.setAttribute('aria-label', `Maximum : ${name}`);
+        target.onchange = () => {
+          if (target.disabled || !target.validity.valid || target.value === '') { renderSettings(); return; }
+          const value = Number(target.value);
+          return change(draft => { draft.targets[id] = value; });
+        };
+        targetLabel.append(target);
+        const unlimitedLabel = element('label', 'unlimited-choice');
+        const unlimited = element('input');
+        unlimited.type = 'checkbox';
+        unlimited.checked = limit === null;
+        unlimited.setAttribute('aria-label', `Illimitée : ${name}`);
+        unlimited.onchange = () => change(draft => {
+          draft.targets[id] = unlimited.checked ? null : base ?? 0;
+        });
+        unlimitedLabel.append(unlimited, document.createTextNode('Illimitée'));
+        controls.append(targetLabel, unlimitedLabel);
+        row.append(controls);
         panel.append(row);
       }
       $('categorySettings').append(section);

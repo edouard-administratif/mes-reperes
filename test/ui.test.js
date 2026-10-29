@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { cats } from '../src/js/catalog.js';
 import { mountUI } from '../src/js/ui.js';
 import { createStore } from '../src/js/store.js';
 import { emptyNotebook } from '../src/js/notebook.js';
@@ -171,4 +172,54 @@ test('jour de semaine actualisé par date, flèches, aujourd’hui et swipes nat
   nodes.get('today').onclick();
   assert.equal(day.value, today());
   assert.equal(label.textContent, weekdayLabel(today()));
+});
+
+
+test('réglages : plafonds, illimité et première portion qualifiée depuis une famille vide', async context => {
+  const nodes = new Map();
+  const previous = globalThis.document;
+  context.after(() => { globalThis.document = previous; });
+  globalThis.document = {
+    getElementById: id => { if (!nodes.has(id)) nodes.set(id, new Node()); return nodes.get(id); },
+    createElement: tag => new Node(tag), createTextNode: text => ({ textContent: text }), querySelectorAll: () => [],
+  };
+  let persisted = emptyNotebook();
+  const store = createStore({ read: () => persisted, write: async draft => { persisted = structuredClone(draft); return persisted; } });
+  mountUI(store);
+  const daily = nodes.get('categories');
+  const settings = nodes.get('categorySettings');
+  const find = (root, label) => walk(root).find(node => node['aria-label'] === label);
+  for (const [, , name, base] of cats) {
+    assert.equal(find(settings, `Maximum : ${name}`).disabled, base === null);
+    assert.equal(find(settings, `Illimitée : ${name}`).checked, base === null);
+  }
+  let unlimited = find(settings, 'Illimitée : Fruit');
+  unlimited.checked = false;
+  await unlimited.onchange();
+  assert.equal(persisted.targets.fruit, 0);
+  let max = find(settings, 'Maximum : Fruit');
+  assert.equal(max.disabled, false);
+  max.value = '2.5';
+  await max.onchange();
+  assert.equal(persisted.targets.fruit, 2.5);
+  unlimited = find(settings, 'Illimitée : Fruit');
+  unlimited.checked = true;
+  await unlimited.onchange();
+  assert.equal(persisted.targets.fruit, null);
+  assert.equal(find(settings, 'Maximum : Fruit').disabled, true);
+  assert(find(daily, 'Frit · Féculents et légumes'));
+  find(daily, 'Frit · Féculents et légumes').onclick();
+  find(daily, 'Gérer · Féculents et légumes').onclick();
+  await find(settings, 'Noter une portion : Autres féculents').onclick();
+  assert.equal(persisted.entries.at(-1).preparation, 'Frit');
+  assert(find(daily, 'Ajouter : Autres féculents'));
+  assert(!walk(daily).some(node => node.textContent?.startsWith('Masquer :')));
+  const link = find(daily, 'Gérer · Féculents et légumes');
+  assert.equal(link.tagName, 'a');
+  assert(walk(daily).find(node => node.id === 'group-panel-starches').children.includes(link));
+  const eye = find(settings, 'Masquer : Autres féculents');
+  assert.equal(eye['aria-pressed'], 'false');
+  await eye.onclick();
+  assert.equal(find(settings, 'Afficher : Autres féculents')['aria-pressed'], 'true');
+  assert(!find(daily, 'Ajouter : Autres féculents'));
 });

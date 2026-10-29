@@ -160,7 +160,7 @@ test/                           Tests de logique, stockage et contrôleur
 ## Fonctionnalités
 
 - Saisie des aliments par portions, journée, repas et famille.
-- Maximums personnels et objectifs journaliers ou hebdomadaires modifiables.
+- Maximums journaliers ou hebdomadaires modifiables pour chaque catégorie, ou choix explicite « Illimitée ».
 - Préparation indépendante par famille, sauf laitages et fromages.
 - Les préparations sont des étiquettes : la sauce riche est une catégorie indépendante à saisir manuellement.
 - Mesures hebdomadaires de poids et de masse graisseuse.
@@ -193,3 +193,5 @@ Le DSFR fourni dans l’archive initiale a été remplacé par des styles locaux
 Le carnet est un outil personnel ; il ne représente pas un service officiel de l’État, LeDiet ou WeightWatchers. Les règles nutritionnelles personnelles ne constituent pas une prescription médicale. Les sources des repères généraux restent accessibles dans l’application.
 
 La saisie quotidienne propose les catégories déjà consommées dans le carnet. Dans les réglages regroupés par famille, le bouton œil permet de forcer leur masquage sans effacer l’historique ; le bouton + note une première portion pour le jour et le repas sélectionnés. Les liens sous les titres ouvrent la famille correspondante dans les réglages ou la saisie. Les familles sont repliées initialement et une seule s’ouvre à la fois dans chaque espace. Vin, bière et autres alcools sont suivis en verres, sans plafond prédéfini, dans une famille dédiée ; les biscuits apéritifs figurent dans les entrées.
+
+Chaque catégorie dispose d’un plafond (zéro compris) ou d’une limite explicitement illimitée, représentée par `null` dans l’export JSON. Les anciens types objectif/minimum/suivi ont été supprimés du catalogue. Le stockage SQLite conserve les plafonds numériques dans `targets` et les choix illimités dans `unlimited_categories`. Les préparations disponibles sont Nature, Grillé, Frit et En sauce ; Vapeur ne fait plus partie du format accepté.

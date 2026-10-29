@@ -12,13 +12,14 @@ export function decodeTables(tables) {
   });
   for (const row of tables.measurements) notebook.measurements[row.week] = { weight: row.weight, fat: row.fat };
   for (const row of tables.targets) notebook.targets[row.category] = row.value;
+  for (const row of tables.unlimited) notebook.targets[row.category] = null;
   notebook.hidden = tables.hidden.map(row => row.category);
   return readNotebook(notebook).notebook;
 }
 
 // Each statement is independent, with bound values; the adapter owns the transaction.
 export function replacementStatements(notebook) {
-  const statements = ['entries', 'measurements', 'targets', 'hidden_categories'].map(table => ({
+  const statements = ['entries', 'measurements', 'targets', 'unlimited_categories', 'hidden_categories'].map(table => ({
     statement: `DELETE FROM ${table}`, values: [],
   }));
   for (const [position, entry] of notebook.entries.entries()) {
@@ -35,7 +36,9 @@ export function replacementStatements(notebook) {
     statements.push({ statement: 'INSERT INTO measurements VALUES (?, ?, ?)', values: [week, measure.weight, measure.fat] });
   }
   for (const [category, value] of Object.entries(notebook.targets)) {
-    statements.push({ statement: 'INSERT INTO targets VALUES (?, ?)', values: [category, value] });
+    statements.push(value === null
+      ? { statement: 'INSERT INTO unlimited_categories VALUES (?)', values: [category] }
+      : { statement: 'INSERT INTO targets VALUES (?, ?)', values: [category, value] });
   }
   for (const category of notebook.hidden) {
     statements.push({ statement: 'INSERT INTO hidden_categories VALUES (?)', values: [category] });

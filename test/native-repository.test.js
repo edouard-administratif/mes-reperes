@@ -54,7 +54,7 @@ test('SQLite natif : sauvegarde de toutes les tables et réouverture sans stocka
   notebook.entries = [food('sauce', 'richsauce'), food('meat'),
     { id: 's', type: 'physical', date: '2026-10-25', text: 'Effort S', level: 'S' }];
   notebook.measurements['2026-10-19'] = { weight: 72, fat: 24 };
-  notebook.targets = { charcuterie: 0, starter: 7 };
+  notebook.targets = { charcuterie: 0, starter: null, fruit: 3 };
   notebook.hidden = ['dessert'];
   await repository.write(notebook);
   await fixture.restart();

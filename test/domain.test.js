@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { cats, foodGroups } from '../src/js/catalog.js';
 import { weekRange, shiftDate, isDate, weekdayLabel } from '../src/js/dates.js';
 import { readNotebook, emptyNotebook, importInfo } from '../src/js/notebook.js';
-import { categoryCount, foodEntries, removeEntries } from '../src/js/nutrition.js';
+import { categoryCount, categoryLimit, foodEntries, removeEntries } from '../src/js/nutrition.js';
 import { chocolateBalance } from '../src/js/chocolate.js';
 import { food } from './helpers.js';
 
@@ -22,7 +22,7 @@ test('chaque catégorie apparaît dans une seule famille', () => {
   assert.deepEqual([...grouped].sort(), cats.map(category => category[0]).sort());
 });
 
-test('total animal sans double compte du poisson gras, objectifs indépendants', () => {
+test('total animal sans double compte du poisson gras, compteurs indépendants', () => {
   const notebook = emptyNotebook();
   notebook.entries = [food('1'), food('2', 'oilyfish'), food('3', 'charcuterie'), food('4', 'pulses')];
   assert.equal(categoryCount(notebook, category('animalTotal'), '2026-10-25'), 3);
@@ -73,4 +73,17 @@ test('libellés français des sept jours, sans décalage aux changements de mois
   const names = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
   for (let i = 0; i < 7; i++) assert.equal(weekdayLabel(shiftDate('2026-10-26', i)), names[i]);
   assert.equal(weekdayLabel('2027-01-01'), 'Vendredi');
+});
+
+test('plafonds numériques ou illimités pour toutes les catégories, import sans objectif particulier', () => {
+  const source = { ...emptyNotebook(), targets: { fruit: 3, charcuterie: 0, starter: null } };
+  const notebook = readNotebook(JSON.parse(JSON.stringify(source))).notebook;
+  assert.deepEqual(notebook.targets, source.targets);
+  assert.equal(categoryLimit(notebook, category('starter')), null);
+  assert.equal(categoryLimit(notebook, category('fruit')), 3);
+  assert.equal(categoryLimit(notebook, category('charcuterie')), 0);
+  assert.equal(categoryLimit(notebook, category('meat')), 2);
+  assert.throws(() => readNotebook({ entries: [], targets: { fruit: -1 } }), /Maximum/);
+  assert.throws(() => readNotebook({ entries: [food('old', 'meat', { preparation: 'Vapeur' })] }), /préparation/);
+  assert.equal(readNotebook({ entries: [food('new', 'meat', { preparation: 'Frit' })] }).notebook.entries[0].preparation, 'Frit');
 });

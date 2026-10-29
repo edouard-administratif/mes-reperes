@@ -40,9 +40,9 @@ export function readNotebook(data) {
   const notebook = emptyNotebook();
   notebook.entries = entries;
   for (const [id, value] of Object.entries(data.targets ?? {})) {
-    if (cats.some(category => category[0] === id && category[3] !== null) && Number.isFinite(value) && value >= 0) {
-      notebook.targets[id] = value;
-    }
+    if (!cats.some(category => category[0] === id)) continue;
+    if (value !== null && (!Number.isFinite(value) || value < 0 || value > 10000)) throw new Error('Maximum de catégorie invalide.');
+    notebook.targets[id] = value;
   }
   if (Array.isArray(data.hidden)) notebook.hidden = [...new Set(data.hidden.filter(id => cats.some(category => category[0] === id)))];
   for (const [day, measure] of Object.entries(data.measurements ?? {})) {

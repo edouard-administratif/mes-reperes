@@ -13,6 +13,7 @@ export async function openRepository({ openDatabase, persistence }) {
       entries: database.all('SELECT * FROM entries ORDER BY position'),
       measurements: database.all('SELECT * FROM measurements'),
       targets: database.all('SELECT * FROM targets'),
+      unlimited: database.all('SELECT * FROM unlimited_categories'),
       hidden: database.all('SELECT * FROM hidden_categories'),
     });
   }

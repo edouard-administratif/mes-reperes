@@ -2,7 +2,7 @@ import { animalCategories } from './catalog.js';
 import { weekRange } from './dates.js';
 
 export function categoryCount(notebook, category, day) {
-  const [id, , , , , period] = category;
+  const [id, , , , period] = category;
   const [start, end] = weekRange(day);
   return notebook.entries.filter(entry => {
     const matches = entry.cat === id || (id === 'fish' && entry.cat === 'oilyfish') ||
@@ -34,3 +34,6 @@ export function removeEntries(notebook, id) {
 }
 
 export const formatPortions = number => Number(number.toFixed(2)).toLocaleString('fr-FR');
+
+// An explicit null means unlimited; an absent override uses the catalog default.
+export const categoryLimit = (notebook, category) => Object.hasOwn(notebook.targets, category[0]) ? notebook.targets[category[0]] : category[3];
