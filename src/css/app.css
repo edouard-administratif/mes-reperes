@@ -422,3 +422,8 @@ button, input { touch-action: manipulation; }
 .unlimited-choice { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; }
 .unlimited-choice input { width: 20px; height: 20px; accent-color: var(--color-primary); }
 .fr-input:disabled { background: var(--color-surface-muted); color: var(--color-text); opacity: .6; cursor: not-allowed; }
+
+#notice:not([hidden]) { margin: 16px 0; padding: 16px; background: var(--color-error-soft); color: var(--color-error); }
+#notice .entry { flex-wrap: wrap; }
+.entry-error { border-left: 3px solid var(--color-error); padding-left: 10px; }
+.entry-issue { margin: 4px 0 0; color: var(--color-error); font-size: 13px; }

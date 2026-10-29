@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { cats } from '../src/js/catalog.js';
 import { mountUI } from '../src/js/ui.js';
 import { createStore } from '../src/js/store.js';
-import { emptyNotebook } from '../src/js/notebook.js';
+import { emptyNotebook, readNotebook } from '../src/js/notebook.js';
 import { food } from './helpers.js';
 import { today, weekdayLabel } from '../src/js/dates.js';
 
@@ -222,4 +222,40 @@ test('réglages : plafonds, illimité et première portion qualifiée depuis une
   await eye.onclick();
   assert.equal(find(settings, 'Afficher : Autres féculents')['aria-pressed'], 'true');
   assert(!find(daily, 'Ajouter : Autres féculents'));
+});
+
+test('entrées invalides : alerte persistante, accès au jour, suppression et annulation', async context => {
+  const nodes = new Map();
+  const previous = globalThis.document;
+  context.after(() => { globalThis.document = previous; });
+  globalThis.document = {
+    getElementById: id => { if (!nodes.has(id)) nodes.set(id, new Node()); return nodes.get(id); },
+    createElement: tag => new Node(tag), createTextNode: text => ({ textContent: text }), querySelectorAll: () => [],
+  };
+  let persisted = { ...emptyNotebook(), entries: [
+    food('old', 'meat', { text: 'Viande vapeur', preparation: 'Vapeur' }),
+    food('badmeal', 'fruit', { text: 'Fruit ancien repas', meal: 'Ancien repas', date: '2026-10-26' }),
+  ] };
+  const store = createStore({ read: () => readNotebook(persisted).notebook, write: async draft => {
+    persisted = readNotebook(draft).notebook; return persisted;
+  } });
+  mountUI(store);
+  const find = (root, label) => walk(nodes.get(root)).find(node => node['aria-label'] === label);
+  assert.equal(nodes.get('app').inert, false);
+  assert.equal(nodes.get('notice').hidden, false);
+  assert(walk(nodes.get('notice')).some(node => node.textContent?.includes('Vapeur')));
+  await find('categorySettings', 'Noter une portion : Verre de vin').onclick();
+  assert.equal(nodes.get('notice').hidden, false);
+  find('notice', 'Voir le journal du 2026-10-25 : Viande vapeur').onclick();
+  assert.equal(nodes.get('day').value, '2026-10-25');
+  assert(walk(nodes.get('journal')).some(node => node.className === 'entry-issue'));
+  await find('journal', 'Supprimer Viande vapeur').onclick();
+  assert.equal(nodes.get('notice').hidden, false);
+  find('notice', 'Voir le journal du 2026-10-26 : Fruit ancien repas').onclick();
+  await find('journal', 'Supprimer Fruit ancien repas').onclick();
+  assert.equal(nodes.get('notice').hidden, true);
+  await nodes.get('undoDelete').onclick();
+  assert.equal(nodes.get('notice').hidden, false);
+  await find('journal', 'Supprimer Fruit ancien repas').onclick();
+  assert.equal(nodes.get('notice').hidden, true);
 });

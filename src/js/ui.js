@@ -2,7 +2,7 @@ import { animalCategories, cats, foodGroups, meals, preparations } from './catal
 import { labelDate, shiftDate, today, weekRange, weekdayLabel } from './dates.js';
 import { foodEntries, removeEntries, categoryLimit, categoryCount, produceCount, formatPortions } from './nutrition.js';
 import { chocolateBalance } from './chocolate.js';
-import { readNotebook, importInfo } from './notebook.js';
+import { readNotebook, importInfo, entryIssues } from './notebook.js';
 import { installDaySwipe } from './day-swipe.js';
 
 const $ = id => document.getElementById(id);
@@ -113,7 +113,14 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
       const row = element('div', 'entry');
       const description = entry.type === 'food' ?
         `${entry.meal} · ${entry.text} · ${formatPortions(entry.portions)} portion(s)${entry.preparation !== 'Nature' ? ` · ${entry.preparation}` : ''}` : entry.text;
-      row.append(element('span', '', description), button(`Supprimer ${entry.text}`, () => remove(entry), 'ri-close-line'));
+      const issues = entryIssues(entry);
+      const content = element('div');
+      content.append(element('span', '', description));
+      if (issues.length) {
+        row.className += ' entry-error';
+        content.append(element('p', 'entry-issue', `${issues.join(' · ')}. Supprime cette entrée pour corriger le carnet.`));
+      }
+      row.append(content, button(`Supprimer ${entry.text}`, () => remove(entry), 'ri-close-line'));
       container.append(row);
     }
   }
@@ -295,6 +302,25 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     history.append(table);
   }
 
+  function renderIssues() {
+    const notice = $('notice');
+    notice.replaceChildren();
+    const invalid = notebook.entries.filter(entry => entryIssues(entry).length);
+    notice.hidden = !invalid.length;
+    if (!invalid.length) return;
+    notice.append(element('p', '', `${invalid.length} entrée(s) avec un repas ou une préparation invalide. Le carnet reste utilisable. Supprime les éléments concernés dans le journal du jour pour corriger ces erreurs.`));
+    for (const entry of invalid) {
+      const row = element('div', 'entry');
+      row.append(element('span', '', `${entry.date} · ${entry.text} · ${entryIssues(entry).join(' · ')}`),
+        button(`Voir le journal du ${entry.date} : ${entry.text}`, () => {
+          $('day').value = entry.date;
+          render();
+          $('journal').scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+        }, 'ri-calendar-line'));
+      notice.append(row);
+    }
+  }
+
   function render() {
     const day = $('day').value;
     const [start, end] = weekRange(day);
@@ -302,6 +328,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     $('week').textContent = `${labelDate(start)} – ${labelDate(end)}`;
     $('produceSummary').textContent = `Fruits + légumes aujourd’hui : ${formatPortions(produceCount(notebook, day))} / 5 portions minimum`;
     renderCategories(day);
+    renderIssues();
     const daily = notebook.entries.filter(entry => entry.date === day);
     renderList('journal', daily.filter(entry => entry.type === 'food'));
     renderList('efforts', daily.filter(entry => entry.type === 'physical'));

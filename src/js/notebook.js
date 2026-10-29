@@ -23,10 +23,10 @@ export function readNotebook(data) {
     const result = { id: entry.id, date: entry.date, type: entry.type, text: entry.text };
     if (entry.type === 'food') {
       if (!Number.isFinite(entry.portions) || entry.portions <= 0) throw new Error('Les aliments doivent être exprimés en portions.');
-      if (!meals.some(meal => meal[1] === entry.meal) || !preparations.some(preparation => preparation[1] === entry.preparation)) {
-        throw new Error('Repas ou préparation invalide.');
-      }
-      Object.assign(result, { cat: entry.cat, portions: entry.portions, meal: entry.meal, preparation: entry.preparation });
+      Object.assign(result, {
+        cat: entry.cat, portions: entry.portions,
+        meal: String(entry.meal ?? ''), preparation: String(entry.preparation ?? ''),
+      });
 
     }
     if (entry.type === 'physical') {
@@ -60,4 +60,14 @@ export function readNotebook(data) {
 export function importInfo(result) {
   const ignored = result.ignoredCount ? ` ${result.ignoredCount} entrée(s) ignorée(s) : catégorie(s) inconnue(s) « ${result.ignoredCategories.join(', ')} ».` : '';
   return ignored;
+}
+
+
+// Keep unknown labels intact so the user can inspect and remove the original entry.
+export function entryIssues(entry) {
+  if (entry.type !== 'food') return [];
+  const issues = [];
+  if (!meals.some(meal => meal[1] === entry.meal)) issues.push(`Repas invalide : « ${entry.meal || '(vide)'} »`);
+  if (!preparations.some(preparation => preparation[1] === entry.preparation)) issues.push(`Préparation invalide : « ${entry.preparation || '(vide)'} »`);
+  return issues;
 }

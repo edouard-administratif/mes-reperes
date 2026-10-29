@@ -98,3 +98,28 @@ test('export Android : JSON dans le cache privé, puis partage du fichier natif'
   assert.equal(calls[0].directory, 'CACHE');
   assert.deepEqual(calls[1].files, ['file:///cache/carnet.json']);
 });
+
+test('carnet existant : repas et préparation inconnus ne bloquent ni ouverture ni sauvegarde', async context => {
+  const fixture = connectionFixture(context);
+  let repository = await openNativeRepository({ connection: fixture.connection, close: async () => {} });
+  await fixture.connection.executeSet([{
+    statement: `INSERT INTO entries (id, position, date, type, text, category, portions, meal, preparation)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    values: ['old', 0, '2026-10-25', 'food', 'Ancien aliment', 'meat', 1, 'Ancien repas', 'Vapeur'],
+  }], true);
+  await fixture.restart();
+  repository = await openNativeRepository({ connection: fixture.connection, close: async () => {} });
+  const store = createStore(repository);
+  assert.equal(store.snapshot().entries[0].preparation, 'Vapeur');
+  await store.update(draft => { draft.entries.push(food('new')); });
+  await fixture.restart();
+  repository = await openNativeRepository({ connection: fixture.connection, close: async () => {} });
+  assert.equal(repository.read().entries.length, 2);
+  assert.equal(repository.read().entries[0].meal, 'Ancien repas');
+  const repaired = repository.read();
+  repaired.entries = repaired.entries.filter(entry => entry.id !== 'old');
+  await repository.write(repaired);
+  await fixture.restart();
+  repository = await openNativeRepository({ connection: fixture.connection, close: async () => {} });
+  assert.deepEqual(repository.read().entries.map(entry => entry.id), ['new']);
+});

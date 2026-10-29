@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { cats, foodGroups } from '../src/js/catalog.js';
 import { weekRange, shiftDate, isDate, weekdayLabel } from '../src/js/dates.js';
-import { readNotebook, emptyNotebook, importInfo } from '../src/js/notebook.js';
+import { readNotebook, emptyNotebook, importInfo, entryIssues } from '../src/js/notebook.js';
 import { categoryCount, categoryLimit, foodEntries, removeEntries } from '../src/js/nutrition.js';
 import { chocolateBalance } from '../src/js/chocolate.js';
 import { food } from './helpers.js';
@@ -84,6 +84,8 @@ test('plafonds numériques ou illimités pour toutes les catégories, import san
   assert.equal(categoryLimit(notebook, category('charcuterie')), 0);
   assert.equal(categoryLimit(notebook, category('meat')), 2);
   assert.throws(() => readNotebook({ entries: [], targets: { fruit: -1 } }), /Maximum/);
-  assert.throws(() => readNotebook({ entries: [food('old', 'meat', { preparation: 'Vapeur' })] }), /préparation/);
+  const invalid = readNotebook({ entries: [food('old', 'meat', { meal: 'Ancien repas', preparation: 'Vapeur' })] }).notebook.entries[0];
+  assert.equal(invalid.preparation, 'Vapeur');
+  assert.equal(entryIssues(invalid).length, 2);
   assert.equal(readNotebook({ entries: [food('new', 'meat', { preparation: 'Frit' })] }).notebook.entries[0].preparation, 'Frit');
 });

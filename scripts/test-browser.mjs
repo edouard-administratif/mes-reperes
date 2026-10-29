@@ -38,7 +38,15 @@ try {
             read: () => persisted,
             write: async notebook => { persisted = structuredClone(notebook); return persisted; },
           });
+          persisted.entries.push({ id: 'invalid', date: '2026-10-23', type: 'food', cat: 'meat', text: 'Ancien repas vapeur', portions: 1, meal: 'Repas inconnu', preparation: 'Vapeur' });
           mountUI(store, { native: true });
+          check(!byId('app').inert && !byId('notice').hidden, 'Carnet accessible avec une entrée invalide');
+          check(byId('notice').textContent.includes('2026-10-23') && byId('notice').textContent.includes('Vapeur'), 'Erreur et jour visibles');
+          document.querySelector('[aria-label="Voir le journal du 2026-10-23 : Ancien repas vapeur"]').click();
+          check(byId('day').value === '2026-10-23' && document.querySelector('#journal .entry-error'), 'Accès au journal concerné');
+          document.querySelector('[aria-label="Supprimer Ancien repas vapeur"]').click();
+          await settle();
+          check(byId('notice').hidden && !persisted.entries.some(entry => entry.id === 'invalid'), 'Suppression corrige l’alerte');
           const toggles = [...document.querySelectorAll('#categories .food-group-toggle')];
           check(toggles.length === 7, 'Sept familles attendues');
           for (const toggle of toggles) {
