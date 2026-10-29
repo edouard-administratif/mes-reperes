@@ -213,8 +213,8 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
         .filter(category => !notebook.hidden.includes(category[0]) && notebook.entries.some(entry =>
           entry.type === 'food' && (entry.cat === category[0] || category[0] === 'animalTotal' && animalCategories.includes(entry.cat))));
       const { section, panel } = familySection(group, false);
+      if (!['dairy', 'drinks'].includes(id)) panel.append(preparationPicker(id, label));
       if (categories.length) {
-        if (!['dairy', 'drinks'].includes(id)) panel.append(preparationPicker(id, label));
         for (const category of categories) panel.append(categoryRow(category, day));
       } else panel.append(element('p', 'detail', 'Aucune catégorie déjà consommée et visible. Utilise « Gérer » pour noter une première portion.'));
       $('categories').append(section);
