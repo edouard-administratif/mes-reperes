@@ -8,7 +8,7 @@ export const cats = [
   ['animalTotal','ri-restaurant-line','Total viandes / poissons',7,'max','week','portion(s)'],
   ['meat','ri-restaurant-2-line','Viande hors volaille',2,'max','week','portion(s)'],
   ['poultry','ri-restaurant-line','Volaille',3,'max','week','portion(s)'],
-  ['charcuterie','ri-knife-line','Charcuterie',0,'max','week','portion(s)'],
+  ['charcuterie','ri-knife-line','Charcuterie',null,'track','week','portion(s)'],
 ['fish','ri-water-flash-line','Poisson',2,'goal','week','portion(s)'],
   ['oilyfish','ri-water-flash-line','Poisson gras',1,'goal','week','portion(s)'],
   ['eggs','ri-seedling-line','Œufs',null,'track','week','portion(s)'],
@@ -36,7 +36,6 @@ export const foodGroups = [
 ];
 
 export const animalCategories = ["meat", "poultry", "charcuterie", "fish", "oilyfish"];
-export const personalCategories = ["starter", "animalTotal", "meat", "poultry", "unsweetenedDairy", "cheese", "charcuterie"];
 export const preparations = [["ri-leaf-line", "Nature"], ["ri-fire-line", "Grillé"], ["ri-blaze-line", "Vapeur"], ["ri-bowl-line", "En sauce"]
 ];
 export const meals = [["ri-sun-foggy-line", "Petit-déjeuner"], ["ri-sun-line", "Déjeuner"], ["ri-moon-line", "Dîner"], ["ri-apple-line", "Collation"]

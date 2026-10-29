@@ -1,4 +1,4 @@
-import { animalCategories, cats, foodGroups, meals, personalCategories, preparations } from './catalog.js';
+import { animalCategories, cats, foodGroups, meals, preparations } from './catalog.js';
 import { labelDate, shiftDate, today, weekRange, weekdayLabel } from './dates.js';
 import { foodEntries, removeEntries, categoryCount, produceCount, formatPortions } from './nutrition.js';
 import { chocolateBalance } from './chocolate.js';
@@ -126,7 +126,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     const content = element('div');
     const title = element('div', 'name');
     title.append(icon(iconName), document.createTextNode(`Masquer : ${name}`));
-    const label = kind === 'max' ? (personalCategories.includes(id) ? 'maximum personnel' : 'maximum') : kind === 'min' ? 'minimum' : 'objectif';
+    const label = kind === 'max' ? 'maximum' : kind === 'min' ? 'minimum' : 'objectif';
     let text = target === null ? `${formatPortions(count)} ${unit} · suivi sans plafond` :
       `${formatPortions(count)} / ${formatPortions(target)} ${unit} · ${label}`;
     text += period === 'day' ? ' / jour' : ' / semaine';

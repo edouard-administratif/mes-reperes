@@ -28,7 +28,7 @@ test('total animal sans double compte du poisson gras, objectifs indépendants',
   assert.equal(categoryCount(notebook, category('animalTotal'), '2026-10-25'), 3);
   assert.equal(categoryCount(notebook, category('fish'), '2026-10-25'), 1);
   assert.equal(categoryCount(notebook, category('animalTotal'), '2026-10-26'), 0);
-  assert.equal(category('charcuterie')[3], 0);
+  assert.equal(category('charcuterie')[3], null);
 });
 
 test('sauce indépendante du mode de préparation et du retrait de son aliment', () => {
