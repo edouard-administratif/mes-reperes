@@ -125,7 +125,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     const row = element('div', 'category');
     const content = element('div');
     const title = element('div', 'name');
-    title.append(icon(iconName), document.createTextNode(`Masquer : ${name}`));
+    title.append(icon(iconName), document.createTextNode(name));
     const label = kind === 'max' ? 'maximum' : kind === 'min' ? 'minimum' : 'objectif';
     let text = target === null ? `${formatPortions(count)} ${unit} · suivi sans plafond` :
       `${formatPortions(count)} / ${formatPortions(target)} ${unit} · ${label}`;
