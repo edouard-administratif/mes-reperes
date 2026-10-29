@@ -31,26 +31,25 @@ test('total animal sans double compte du poisson gras, objectifs indépendants',
   assert.equal(category('charcuterie')[3], 0);
 });
 
-test('sauce ajoutée avec son aliment, retrait groupé et aucun doublon pour une sauce directe', () => {
+test('sauce indépendante du mode de préparation et du retrait de son aliment', () => {
   let id = 0;
   const context = { day: '2026-10-25', meal: 'Dîner', preparation: 'En sauce', id: () => String(++id) };
   const entries = foodEntries(category('poultry'), context);
-  assert.equal(entries.length, 2);
-  assert.equal(entries[1].linkedTo, entries[0].id);
+  assert.equal(entries.length, 1);
+  entries.push(...foodEntries(category('richsauce'), context));
   assert.equal(foodEntries(category('richsauce'), context).length, 1);
   const notebook = { ...emptyNotebook(), entries };
   const removed = removeEntries(notebook, entries[0].id);
-  assert.equal(notebook.entries.length, 0);
+  assert.equal(notebook.entries.length, 1);
   notebook.entries.push(...removed);
   assert.equal(notebook.entries.length, 2);
 });
 
-test('import partiel avec message et retrait des sauces devenues orphelines', () => {
+test('import partiel avec message et sauces indépendantes', () => {
   const source = { entries: [food('ok'), food('old', 'supprimee'), food('sauce', 'richsauce', { linkedTo: 'old' })] };
   const result = readNotebook(source);
-  assert.deepEqual(result.notebook.entries, [food('ok')]);
+  assert.deepEqual(result.notebook.entries, [food('ok'), food('sauce', 'richsauce')]);
   assert.equal(result.ignoredCount, 1);
-  assert.equal(result.orphanCount, 1);
   assert.match(importInfo(result), /supprimee/);
   assert.throws(() => readNotebook({ entries: [food('a'), food('a')] }), /dupliqués/);
   assert.throws(() => readNotebook({ entries: [food('a', 'meat', { portions: undefined, quantity: 100 })] }), /portions/);

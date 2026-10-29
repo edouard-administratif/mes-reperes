@@ -6,7 +6,6 @@ export function decodeTables(tables) {
     const entry = { id: row.id, date: row.date, type: row.type, text: row.text };
     if (row.type === 'food') {
       Object.assign(entry, { cat: row.category, portions: row.portions, meal: row.meal, preparation: row.preparation });
-      if (row.linked_to !== null) entry.linkedTo = row.linked_to;
     }
     if (row.type === 'physical') entry.level = row.level;
     return entry;
@@ -29,7 +28,7 @@ export function replacementStatements(notebook) {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       values: [entry.id, position, entry.date, entry.type, entry.text, entry.cat ?? null,
         entry.portions ?? null, entry.meal ?? null, entry.preparation ?? null,
-        entry.level ?? null, entry.linkedTo ?? null],
+        entry.level ?? null, null],
     });
   }
   for (const [week, measure] of Object.entries(notebook.measurements)) {

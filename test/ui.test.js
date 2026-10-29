@@ -33,7 +33,7 @@ function walk(node, result = []) {
 }
 
 // This checks controller wiring without pretending to validate browser layout.
-test('interface : attente de la sauvegarde, sauce associée et erreur persistante sans faux succès', async context => {
+test('interface : attente de la sauvegarde, sauce indépendante et erreur persistante sans faux succès', async context => {
   const nodes = new Map();
   const previous = globalThis.document;
   context.after(() => { globalThis.document = previous; });
@@ -59,13 +59,13 @@ test('interface : attente de la sauvegarde, sauce associée et erreur persistant
   const sauce = walk(root).find(node => node['aria-label'] === 'En sauce · Viandes et poissons');
   sauce.onclick();
   await click('Ajouter : Volaille');
-  assert.equal(persisted.entries.length, 2);
-  assert.equal(persisted.entries[1].cat, 'richsauce');
+  assert.equal(persisted.entries.length, 1);
+  assert.equal(persisted.entries[0].preparation, 'En sauce');
   assert.equal(nodes.get('app').inert, false);
   assert.match(nodes.get('storageStatus').textContent, /enregistré/);
   fail = true;
   await click('Ajouter : Volaille');
-  assert.equal(persisted.entries.length, 2);
+  assert.equal(persisted.entries.length, 1);
   assert.match(nodes.get('storageStatus').textContent, /non enregistrée/);
   assert.match(nodes.get('storageStatus').textContent, /Stockage indisponible/);
   assert.equal(nodes.get('app').inert, false);
@@ -90,7 +90,7 @@ test('familles repliées au démarrage, une seule ouverte et état conservé apr
   const root = nodes.get('categories');
   const find = id => walk(root).find(node => node.id === id);
   const toggles = walk(root).filter(node => node.className === 'food-group-toggle');
-  assert.equal(toggles.length, 6);
+  assert.equal(toggles.length, 7);
   for (const toggle of toggles) {
     assert.equal(toggle['aria-expanded'], 'false');
     const panel = find(toggle['aria-controls']);

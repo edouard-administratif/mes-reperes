@@ -12,10 +12,10 @@ async function setup(context) {
   return { openDatabase, persistence, repository, store: createStore(repository) };
 }
 
-test('persistance SQLite réelle : repas liés, mesures, limites et catégories masquées après réouverture', async context => {
+test('persistance SQLite réelle : repas, mesures, limites et catégories masquées après réouverture', async context => {
   const { openDatabase, persistence, repository } = await setup(context);
   const notebook = emptyNotebook();
-  notebook.entries = [food('sauce', 'richsauce', { linkedTo: 'parent' }), food('parent'),
+  notebook.entries = [food('sauce', 'richsauce'), food('parent'),
     { id: 'effort', date: '2026-10-25', type: 'physical', text: 'Effort S', level: 'S' },
     { id: 'choc', date: '2026-10-25', type: 'chocolate', text: 'Carré' }];
   notebook.measurements['2026-10-19'] = { weight: 72.5, fat: 24 };

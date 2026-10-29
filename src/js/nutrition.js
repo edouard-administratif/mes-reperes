@@ -23,18 +23,11 @@ export function foodEntries(category, { day, meal, preparation, id = () => crypt
     id: id(), date: day, type: 'food', cat: category[0], text: category[2],
     meal, preparation, portions: 1,
   };
-  const entries = [entry];
-  if (preparation === 'En sauce' && entry.cat !== 'richsauce') {
-    entries.push({
-      id: id(), date: day, type: 'food', cat: 'richsauce', text: 'Sauce riche (automatique)',
-      meal, preparation: 'Nature', portions: 1, linkedTo: entry.id,
-    });
-  }
-  return entries;
+  return [entry];
 }
 
 export function removeEntries(notebook, id) {
-  const removed = notebook.entries.filter(entry => entry.id === id || entry.linkedTo === id);
+  const removed = notebook.entries.filter(entry => entry.id === id);
   const ids = new Set(removed.map(entry => entry.id));
   notebook.entries = notebook.entries.filter(entry => !ids.has(entry.id));
   return removed;

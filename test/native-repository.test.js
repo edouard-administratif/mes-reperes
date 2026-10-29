@@ -51,7 +51,7 @@ test('SQLite natif : sauvegarde de toutes les tables et réouverture sans stocka
   const fixture = connectionFixture(context);
   const repository = await openNativeRepository({ connection: fixture.connection, close: async () => {} });
   const notebook = emptyNotebook();
-  notebook.entries = [food('sauce', 'richsauce', { linkedTo: 'meat' }), food('meat'),
+  notebook.entries = [food('sauce', 'richsauce'), food('meat'),
     { id: 's', type: 'physical', date: '2026-10-25', text: 'Effort S', level: 'S' }];
   notebook.measurements['2026-10-19'] = { weight: 72, fat: 24 };
   notebook.targets = { charcuterie: 0, starter: 7 };

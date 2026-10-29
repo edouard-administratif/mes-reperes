@@ -27,10 +27,7 @@ export function readNotebook(data) {
         throw new Error('Repas ou préparation invalide.');
       }
       Object.assign(result, { cat: entry.cat, portions: entry.portions, meal: entry.meal, preparation: entry.preparation });
-      if (entry.linkedTo !== undefined) {
-        if (typeof entry.linkedTo !== 'string' || entry.cat !== 'richsauce') throw new Error('Association de sauce invalide.');
-        result.linkedTo = entry.linkedTo;
-      }
+
     }
     if (entry.type === 'physical') {
       if (!['S', 'M', 'L'].includes(entry.level)) throw new Error('Effort physique invalide.');
@@ -40,11 +37,8 @@ export function readNotebook(data) {
   });
   const ids = new Set(entries.map(entry => entry.id));
   if (ids.size !== entries.length) throw new Error('Identifiants d’entrées dupliqués.');
-  const parents = new Map(entries.filter(entry => entry.type === 'food' && !entry.linkedTo).map(entry => [entry.id, entry]));
-  const validEntries = entries.filter(entry => !entry.linkedTo || parents.get(entry.linkedTo)?.date === entry.date);
-  const orphanCount = entries.length - validEntries.length;
   const notebook = emptyNotebook();
-  notebook.entries = validEntries;
+  notebook.entries = entries;
   for (const [id, value] of Object.entries(data.targets ?? {})) {
     if (cats.some(category => category[0] === id && category[3] !== null) && Number.isFinite(value) && value >= 0) {
       notebook.targets[id] = value;
@@ -60,11 +54,10 @@ export function readNotebook(data) {
     }
     notebook.measurements[day] = { weight: measure.weight, fat: measure.fat };
   }
-  return { notebook, ignoredCategories: [...ignoredCategories], ignoredCount, orphanCount };
+  return { notebook, ignoredCategories: [...ignoredCategories], ignoredCount };
 }
 
 export function importInfo(result) {
   const ignored = result.ignoredCount ? ` ${result.ignoredCount} entrée(s) ignorée(s) : catégorie(s) inconnue(s) « ${result.ignoredCategories.join(', ')} ».` : '';
-  const orphans = result.orphanCount ? ` ${result.orphanCount} sauce(s) associée(s) sans aliment ignorée(s).` : '';
-  return ignored + orphans;
+  return ignored;
 }
