@@ -158,6 +158,20 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     return row;
   }
 
+  function openFamily(id, settings) {
+    if (settings) {
+      expandedSettingsGroup = id;
+      $('categoryManagement').open = true;
+      renderSettings();
+    } else {
+      expandedGroup = id;
+      renderCategories($('day').value);
+    }
+    const toggle = $(`${settings ? 'settings-' : ''}group-toggle-${id}`);
+    toggle?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+    toggle?.focus?.({ preventScroll: true });
+  }
+
   function familySection([id, label, iconName], settings) {
     const prefix = settings ? 'settings-' : '';
     const expanded = settings ? expandedSettingsGroup : expandedGroup;
@@ -180,8 +194,12 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
       $(`${prefix}group-toggle-${id}`)?.focus?.({ preventScroll: true });
     };
     heading.append(toggle);
+    const link = button(settings ? `Saisir · ${label}` : `Gérer · ${label}`, () => openFamily(id, !settings));
+    link.className += ' family-link';
     section.setAttribute('aria-labelledby', toggle.id);
-    section.append(heading, panel);
+    section.append(heading);
+    if (!settings) section.append(link);
+    section.append(panel);
     return { section, panel };
   }
 
