@@ -1,6 +1,6 @@
 import { animalCategories, cats, foodGroups, meals, preparations } from './catalog.js';
 import { labelDate, shiftDate, today, weekRange, weekdayLabel } from './dates.js';
-import { foodEntries, removeEntries, categoryLimit, categoryCount, produceCount, formatPortions } from './nutrition.js';
+import { foodEntries, removeEntries, categoryLimit, weeklyStatus, categoryCount, produceCount, formatPortions } from './nutrition.js';
 import { chocolateBalance } from './chocolate.js';
 import { readNotebook, importInfo, entryIssues } from './notebook.js';
 import { createTabs } from './tabs.js';
@@ -287,6 +287,37 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     $('categorySettings').append(element('p', 'detail', 'La saisie propose les catégories déjà consommées. Utilise l’œil pour masquer une catégorie sans effacer son historique. Le bouton + enregistre une portion pour le jour et le repas sélectionnés, avec la préparation choisie pour cette famille lorsqu’elle est applicable.'));
   }
 
+  function renderWeeklyStatus(day) {
+    const container = $('weeklyStatus');
+    container.replaceChildren();
+    const rows = weeklyStatus(notebook, day);
+    if (!rows.length) container.append(element('p', 'empty', 'Aucun plafond à afficher pour cette semaine.'));
+    for (const [, label, , ids] of foodGroups) {
+      const items = rows.filter(row => ids.includes(row.id));
+      if (!items.length) continue;
+      const group = element('section', 'weekly-group');
+      group.append(element('h3', '', label));
+      for (const row of items) {
+        const item = element('div', 'weekly-category');
+        item.append(element('strong', '', row.name));
+        const result = row.exceeded > 0 ? `Dépassement : ${formatPortions(row.exceeded)} ${row.unit}` :
+          row.remaining === 0 ? 'Maximum atteint' : row.period === 'week' ? `Reste avant le maximum : ${formatPortions(row.remaining)} ${row.unit}` : 'Plafond journalier respecté';
+        item.append(element('p', row.exceeded > 0 ? 'over' : 'detail', result));
+        item.append(element('p', 'detail', `${formatPortions(row.count)} ${row.unit} notées · maximum ${formatPortions(row.limit)} / ${row.period === 'day' ? 'jour' : 'semaine'}`));
+        if (row.days.length) {
+          const list = element('ul', 'daily-limits');
+          for (const entry of row.days.filter(entry => row.limit > 0 || entry.exceeded > 0)) {
+            const text = entry.exceeded > 0 ? `dépassement de ${formatPortions(entry.exceeded)}` : `reste ${formatPortions(entry.remaining)}`;
+            list.append(element('li', entry.exceeded > 0 ? 'over' : '', `${labelDate(entry.date)} : ${text} ${row.unit}`));
+          }
+          item.append(list);
+        }
+        group.append(item);
+      }
+      container.append(group);
+    }
+  }
+
   function renderMeasurements(week) {
     $('weight').value = notebook.measurements[week]?.weight ?? '';
     $('fat').value = notebook.measurements[week]?.fat ?? '';
@@ -342,6 +373,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     $('balance').textContent = `${balance.total} carré(s) disponible(s)`;
     $('creditDetail').textContent = `${balance.carried} d’hier (expirent ce soir) · ${balance.fresh} du jour.${balance.shortfall ? ` ${balance.shortfall} carré(s) consommé(s) au-delà du solde après modification.` : ''}`;
     $('chocolate').disabled = balance.total < 1;
+    renderWeeklyStatus(day);
     renderMeasurements(start);
     renderSettings();
     renderUndo();

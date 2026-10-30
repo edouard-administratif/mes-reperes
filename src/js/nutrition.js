@@ -1,5 +1,5 @@
-import { animalCategories } from './catalog.js';
-import { weekRange } from './dates.js';
+import { animalCategories, cats } from './catalog.js';
+import { shiftDate, weekRange } from './dates.js';
 
 export function categoryCount(notebook, category, day) {
   const [id, , , , period] = category;
@@ -37,3 +37,24 @@ export const formatPortions = number => Number(number.toFixed(2)).toLocaleString
 
 // An explicit null means unlimited; an absent override uses the catalog default.
 export const categoryLimit = (notebook, category) => Object.hasOwn(notebook.targets, category[0]) ? notebook.targets[category[0]] : category[3];
+
+
+export function weeklyStatus(notebook, day) {
+  const [start] = weekRange(day);
+  return cats.flatMap(category => {
+    const [id, , name, , period, unit] = category;
+    const limit = categoryLimit(notebook, category);
+    if (limit === null) return [];
+    const days = period === 'day' ? Array.from({ length: 7 }, (_, index) => {
+      const date = shiftDate(start, index);
+      const count = categoryCount(notebook, category, date);
+      return { date, count, remaining: Math.max(0, limit - count), exceeded: Math.max(0, count - limit) };
+    }) : [];
+    const count = days.length ? days.reduce((sum, item) => sum + item.count, 0) : categoryCount(notebook, category, day);
+    if (limit === 0 && count === 0) return [];
+    return [{ id, name, period, unit, limit, count, days,
+      remaining: days.length ? null : Math.max(0, limit - count),
+      exceeded: days.length ? days.reduce((sum, item) => sum + item.exceeded, 0) : Math.max(0, count - limit),
+    }];
+  });
+}
