@@ -281,7 +281,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
       }
       $('categorySettings').append(section);
     }
-    $('categorySettings').append(element('p', 'detail', 'La saisie propose les catégories déjà consommées. Utilise l’œil pour masquer une catégorie sans effacer son historique. Le bouton + note une première portion pour le jour et le repas sélectionnés.'));
+    $('categorySettings').append(element('p', 'detail', 'La saisie propose les catégories déjà consommées. Utilise l’œil pour masquer une catégorie sans effacer son historique. Le bouton + enregistre une portion pour le jour et le repas sélectionnés, avec la préparation choisie pour cette famille lorsqu’elle est applicable.'));
   }
 
   function renderMeasurements(week) {
