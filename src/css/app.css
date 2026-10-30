@@ -427,3 +427,5 @@ button, input { touch-action: manipulation; }
 #notice .entry { flex-wrap: wrap; }
 .entry-error { border-left: 3px solid var(--color-error); padding-left: 10px; }
 .entry-issue { margin: 4px 0 0; color: var(--color-error); font-size: 13px; }
+
+.form-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
