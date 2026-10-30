@@ -437,7 +437,11 @@ body { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
 .tab-bar .app-tab i { font-size: 22px; padding: 1px 18px; border-radius: 16px; }
 .tab-bar .app-tab[aria-selected="true"] { color: var(--color-primary); font-weight: 700; }
 .tab-bar .app-tab[aria-selected="true"] i { background: var(--color-primary-soft); }
-.tab-bar .app-tab:hover { background: var(--color-surface-muted); color: var(--color-primary); }
+/* Touch browsers can retain :hover after a tap: never shade the entire tab. */
+.tab-bar .app-tab:is(:hover, :active, :focus) { background: white; }
+@media (hover: hover) {
+  .tab-bar .app-tab[aria-selected="false"]:hover i { background: var(--color-surface-muted); }
+}
 .app-tab-panel { min-width: 0; }
 
 .weekly-group h3 { font-size: 16px; margin: 20px 0 8px; }
