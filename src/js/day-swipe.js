@@ -2,7 +2,7 @@
 export function installDaySwipe(root, navigate) {
   let start = null;
   const reset = () => { start = null; };
-  const blocked = target => target?.closest('input, textarea, select, button, a, summary, [contenteditable], [role="slider"], [data-no-swipe]');
+  const blocked = target => target?.closest('input, textarea, select, button, a, summary, dialog, [contenteditable], [role="slider"], [data-no-swipe]');
 
   function begin(event) {
     start = null;

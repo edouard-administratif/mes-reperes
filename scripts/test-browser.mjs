@@ -14,131 +14,7 @@ if (!executable) throw new Error('Chromium ou Google Chrome est requis pour le t
 const directory = await mkdtemp(join(tmpdir(), 'mes-reperes-browser-'));
 try {
   const fixture = await build({
-    stdin: {
-      resolveDir: root,
-      contents: `
-        import { mountUI } from './src/js/ui.js';
-        import { createStore } from './src/js/store.js';
-        import { emptyNotebook } from './src/js/notebook.js';
-        const result = document.createElement('output');
-        result.id = 'browser-test-result';
-        document.body.append(result);
-        const errors = [];
-        window.addEventListener('error', event => errors.push(event.message));
-        window.addEventListener('unhandledrejection', event => errors.push(String(event.reason)));
-        const check = (condition, message) => { if (!condition) throw new Error(message); };
-        const byId = id => document.getElementById(id);
-        const settle = async () => {
-          for (let i = 0; i < 100 && byId('app').inert; i++) await new Promise(resolve => setTimeout(resolve, 10));
-          check(!byId('app').inert, 'Sauvegarde non terminée');
-        };
-        (async () => {
-          let persisted = { ...emptyNotebook(), entries: [{ id: 'existing', date: '2026-10-25', type: 'food', cat: 'poultry', text: 'Volaille', portions: 1, meal: 'Déjeuner', preparation: 'Nature' }] };
-          const store = createStore({
-            read: () => persisted,
-            write: async notebook => { persisted = structuredClone(notebook); return persisted; },
-          });
-          persisted.entries.push({ id: 'invalid', date: '2026-10-23', type: 'food', cat: 'meat', text: 'Ancien repas vapeur', portions: 1, meal: 'Repas inconnu', preparation: 'Vapeur' });
-          mountUI(store, { native: true });
-          check(!byId('app').inert && !byId('notice').hidden, 'Carnet accessible avec une entrée invalide');
-          check(byId('notice').textContent.includes('2026-10-23') && byId('notice').textContent.includes('Vapeur'), 'Erreur et jour visibles');
-          document.querySelector('[aria-label="Voir le journal du 2026-10-23 : Ancien repas vapeur"]').click();
-          check(byId('day').value === '2026-10-23' && document.querySelector('#journal .entry-error'), 'Accès au journal concerné');
-          document.querySelector('[aria-label="Supprimer Ancien repas vapeur"]').click();
-          await settle();
-          check(byId('notice').hidden && !persisted.entries.some(entry => entry.id === 'invalid'), 'Suppression corrige l’alerte');
-          const toggles = [...document.querySelectorAll('#categories .food-group-toggle')];
-          check(toggles.length === 7, 'Sept familles attendues');
-          for (const toggle of toggles) {
-            check(toggle.getAttribute('aria-expanded') === 'false', 'Famille ouverte au démarrage');
-            check(getComputedStyle(byId(toggle.getAttribute('aria-controls'))).display === 'none', 'Panneau replié visible');
-          }
-          byId('day').value = '2026-11-01';
-          byId('day').dispatchEvent(new Event('change'));
-          check(byId('dayLabel').textContent === 'Dimanche', 'Libellé dimanche');
-          byId('group-toggle-animal').click();
-          check(!byId('group-panel-animal').hidden, 'Ouverture des viandes');
-          byId('group-toggle-starters').click();
-          check(byId('group-panel-animal').hidden, 'Fermeture de la famille précédente');
-          byId('group-toggle-starters').click();
-          check(byId('group-panel-starters').hidden, 'Fermeture par second clic');
-          byId('group-toggle-animal').click();
-          document.querySelector('[aria-label="En sauce · Viandes et poissons"]').click();
-          document.querySelector('[aria-label="Ajouter : Volaille"]').click();
-          await settle();
-          check(persisted.entries.length === 2, 'Aliment seul, sans sauce automatique');
-          check(!byId('group-panel-animal').hidden, 'État conservé après sauvegarde');
-          document.querySelector('[aria-label="Gérer · Viandes et poissons"]').click();
-          check(!byId('settings-panel-categories').hidden && !byId('settings-group-panel-animal').hidden, 'Lien vers les réglages dépliés');
-          document.querySelector('[aria-label="Masquer : Volaille"]').click();
-          await settle();
-          check(!document.querySelector('[aria-label="Ajouter : Volaille"]'), 'Catégorie décochée masquée');
-          check(persisted.entries.length === 2, 'Historique conservé');
-          const eye = document.querySelector('[aria-label="Afficher : Volaille"]');
-          check(eye.querySelector('.ri-eye-off-line') && eye.getAttribute('aria-pressed') === 'true', 'Œil barré pour la catégorie masquée');
-          check(document.documentElement.scrollWidth <= window.innerWidth, 'Débordement des réglages');
-          byId('settings-group-toggle-extras').click();
-          document.querySelector('[aria-label="Saisir · Fruits et desserts"]').click();
-          check(!byId('group-panel-extras').hidden && byId('group-panel-animal').hidden, 'Retour vers la saisie dépliée');
-          byId('settings-group-toggle-animal').click();
-          document.querySelector('[aria-label="Afficher : Volaille"]').click();
-          await settle();
-          check(document.querySelector('[aria-label="Ajouter : Volaille"]'), 'Catégorie restaurée');
-          check(!document.querySelector('[aria-label="Ajouter : Verre de vin"]'), 'Catégorie jamais consommée absente');
-          byId('settings-group-toggle-drinks').click();
-          document.querySelector('[aria-label="Noter une portion : Verre de vin"]').click();
-          await settle();
-          check(document.querySelector('[aria-label="Ajouter : Verre de vin"]'), 'Première consommation rend la catégorie disponible');
-          byId('group-toggle-starches').click();
-          const prep = document.querySelector('[aria-label="Frit · Féculents et légumes"]');
-          check(prep && prep.getClientRects().length, 'Préparation disponible sans catégorie active');
-          check(!document.querySelector('[aria-label="Vapeur · Féculents et légumes"]'), 'Préparation vapeur supprimée');
-          prep.click();
-          document.querySelector('[aria-label="Gérer · Féculents et légumes"]').click();
-          document.querySelector('[aria-label="Noter une portion : Autres féculents"]').click();
-          await settle();
-          check(persisted.entries.at(-1).preparation === 'Frit', 'Première portion qualifiée depuis les réglages');
-          const header = document.querySelector('[aria-label="Noter une portion : Autres féculents"]').closest('.category-setting-header');
-          check(Math.abs(header.getBoundingClientRect().right - header.querySelector('.category-actions').getBoundingClientRect().right) < 2, 'Actions alignées à droite');
-          byId('settings-group-toggle-extras').click();
-          let unlimited = document.querySelector('[aria-label="Illimitée : Fruit"]');
-          check(unlimited.checked && document.querySelector('[aria-label="Maximum : Fruit"]').disabled, 'Fruit illimité par défaut');
-          unlimited.click();
-          await settle();
-          let maximum = document.querySelector('[aria-label="Maximum : Fruit"]');
-          check(!maximum.disabled, 'Maximum activé');
-          maximum.value = '3';
-          maximum.dispatchEvent(new Event('change'));
-          await settle();
-          check(persisted.targets.fruit === 3, 'Maximum personnalisé enregistré');
-          document.querySelector('[aria-label="Illimitée : Fruit"]').click();
-          await settle();
-          check(persisted.targets.fruit === null && document.querySelector('[aria-label="Maximum : Fruit"]').disabled, 'Retour explicite à illimitée');
-          byId('group-toggle-starches').click();
-          check(!document.querySelector('[aria-label="Gérer · Féculents et légumes"]').getClientRects().length, 'Lien masqué quand la famille est repliée');
-          const swipe = (dx, dy = 0, target = byId('produceSummary')) => {
-            const start = new Touch({ identifier: 1, target, clientX: 200, clientY: 150 });
-            const end = new Touch({ identifier: 1, target, clientX: 200 + dx, clientY: 150 + dy });
-            target.dispatchEvent(new TouchEvent('touchstart', { bubbles: true, touches: [start] }));
-            target.dispatchEvent(new TouchEvent('touchmove', { bubbles: true, touches: [end] }));
-            target.dispatchEvent(new TouchEvent('touchend', { bubbles: true, touches: [], changedTouches: [end] }));
-          };
-          swipe(-100);
-          check(byId('day').value === '2026-11-02' && byId('dayLabel').textContent === 'Lundi', 'Swipe vers le lendemain');
-          swipe(100);
-          check(byId('day').value === '2026-11-01', 'Swipe vers la veille');
-          swipe(10, 100);
-          swipe(100, 0, byId('day'));
-          check(byId('day').value === '2026-11-01', 'Défilement et contrôles doivent être ignorés');
-          byId('next').click();
-          check(byId('dayLabel').textContent === 'Lundi', 'Libellé après flèche');
-          check(document.documentElement.scrollWidth <= window.innerWidth, 'Débordement horizontal');
-          check(errors.length === 0, errors.join('; '));
-          result.dataset.status = 'passed';
-          result.textContent = 'Accordéons, calendrier, gestes tactiles et saisie vérifiés dans Chromium.';
-        })().catch(error => { result.dataset.status = 'failed'; result.textContent = error.stack; });
-      `,
-    },
+    entryPoints: [join(root, 'test/browser-scenario.js')],
     bundle: true, format: 'iife', platform: 'browser', target: 'chrome109', write: false,
   });
   const source = fixture.outputFiles[0].text.replace(/<\/script/gi, '<\\/script');
@@ -149,7 +25,7 @@ try {
   await writeFile(path, html);
   const browser = spawnSync(executable, [
     '--headless', '--no-sandbox', '--disable-dev-shm-usage', '--disable-background-networking',
-    '--allow-file-access-from-files', '--window-size=390,844', '--virtual-time-budget=5000',
+    '--allow-file-access-from-files', '--window-size=390,844', '--virtual-time-budget=10000',
     '--user-data-dir=' + join(directory, 'profile'), '--dump-dom', pathToFileURL(path).href,
   ], { encoding: 'utf8', timeout: 30000, maxBuffer: 4 * 1024 * 1024 });
   if (browser.error) throw browser.error;
@@ -157,5 +33,5 @@ try {
     const report = browser.stdout.match(/<output id="browser-test-result"[^>]*>[\s\S]*?<\/output>/)?.[0];
     throw new Error(report || browser.stderr.slice(-3000) || 'Le test Chromium ne s’est pas terminé.');
   }
-  console.log('Test Chromium réussi : accordéons, jours, swipe, saisie et absence de débordement.');
+  console.log('Test Chromium réussi : onglets, réglages modaux, maximums, semaines, journal et swipe.');
 } finally { await rm(directory, { recursive: true, force: true }); }

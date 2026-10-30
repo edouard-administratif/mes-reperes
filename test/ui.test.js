@@ -20,6 +20,8 @@ class Node {
       add: name => { this.className += ` ${name}`; },
     };
   }
+  showModal() { this.open = true; }
+  close() { this.open = false; this.onclose?.(); }
   append(...children) { this.children.push(...children); }
   replaceChildren(...children) { this.children = children; }
   setAttribute(name, value) { this[name] = value; }
@@ -126,9 +128,10 @@ test('familles repliées au démarrage, une seule ouverte et état conservé apr
   assert(persisted.hidden.includes('poultry'));
   assert(!walk(root).some(node => node['aria-label'] === 'Ajouter : Volaille'));
   assert.equal(persisted.entries.length, 3);
-  walk(settings).find(node => node['aria-label'] === 'Saisir · Fruits et desserts').onclick();
-  assert.equal(find('group-panel-extras').hidden, false);
-  assert.equal(find('group-panel-animal').hidden, true);
+  assert(!walk(settings).some(node => node['aria-label']?.startsWith('Saisir ·')));
+  nodes.get('closeSettings').onclick();
+  assert.equal(nodes.get('settingsDialog').open, false);
+  assert.equal(find('group-panel-animal').hidden, false);
   const restore = walk(settings).find(node => node['aria-label'] === 'Afficher : Volaille');
   await restore.onclick();
   assert(walk(root).some(node => node['aria-label'] === 'Ajouter : Volaille'));
@@ -258,4 +261,48 @@ test('entrées invalides : alerte persistante, accès au jour, suppression et an
   assert.equal(nodes.get('notice').hidden, false);
   await find('journal', 'Supprimer Fruit ancien repas').onclick();
   assert.equal(nodes.get('notice').hidden, true);
+});
+
+test('navigation : date commune, semaines, mesures et ouverture ciblée des réglages', async context => {
+  const nodes = new Map();
+  const previous = globalThis.document;
+  context.after(() => { globalThis.document = previous; });
+  globalThis.document = {
+    getElementById: id => { if (!nodes.has(id)) nodes.set(id, new Node()); return nodes.get(id); },
+    createElement: tag => new Node(tag), createTextNode: text => ({ textContent: text }), querySelectorAll: () => [],
+  };
+  let persisted = emptyNotebook();
+  const store = createStore({ read: () => persisted, write: async draft => { persisted = structuredClone(draft); return persisted; } });
+  mountUI(store);
+  const day = nodes.get('day');
+  day.value = '2026-11-01'; day.onchange();
+  nodes.get('main-tab-week').onclick();
+  assert.equal(nodes.get('main-panel-week').hidden, false);
+  assert.equal(day.value, '2026-11-01');
+  nodes.get('next').onclick();
+  assert.equal(day.value, '2026-11-08');
+  assert.equal(nodes.get('next')['aria-label'], 'Semaine suivante');
+  nodes.get('weight').value = '72.5'; nodes.get('fat').value = '24';
+  await nodes.get('measureForm').onsubmit({ preventDefault() {} });
+  assert.deepEqual(persisted.measurements['2026-11-02'], { weight: 72.5, fat: 24 });
+  nodes.get('main-tab-journal').onclick();
+  assert.equal(day.value, '2026-11-08');
+  nodes.get('prev').onclick();
+  assert.equal(day.value, '2026-11-07');
+  nodes.get('main-tab-week').onclick();
+  assert.equal(nodes.get('weight').value, 72.5);
+  nodes.get('main-tab-meals').onclick();
+  const manage = walk(nodes.get('categories')).find(node => node['aria-label'] === 'Gérer · Féculents et légumes');
+  manage.onclick();
+  assert.equal(nodes.get('settingsDialog').open, true);
+  assert.equal(nodes.get('settings-panel-categories').hidden, false);
+  assert.equal(walk(nodes.get('categorySettings')).find(node => node.id === 'settings-group-panel-starches').hidden, false);
+  nodes.get('settings-tab-backup').onclick();
+  assert.equal(nodes.get('settings-panel-backup').hidden, false);
+  nodes.get('closeSettings').onclick();
+  assert.equal(nodes.get('settingsDialog').open, false);
+  assert.equal(day.value, '2026-11-07');
+  manage.onclick();
+  assert.equal(nodes.get('settings-panel-categories').hidden, false);
+  nodes.get('closeSettings').onclick();
 });

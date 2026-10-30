@@ -168,19 +168,38 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     return row;
   }
 
-  function openFamily(id, settings) {
-    if (settings) {
-      expandedSettingsGroup = id;
+  let settingsReturnGroup = null;
+  let settingsFocusPending = false;
+
+  function openSettings(group = null) {
+    if ($('app').inert) return;
+    settingsReturnGroup = group;
+    if (group) {
+      expandedSettingsGroup = group;
       settingsTabs.select('categories');
       renderSettings();
-    } else {
-      mainTabs.select('meals');
-      expandedGroup = id;
-      renderCategories($('day').value);
     }
-    const toggle = $(`${settings ? 'settings-' : ''}group-toggle-${id}`);
-    toggle?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
-    toggle?.focus?.({ preventScroll: true });
+    if (!$('settingsDialog').open) {
+      settingsFocusPending = true;
+      $('settingsDialog').showModal();
+    }
+    document.body?.classList.add('settings-open');
+    if (group) {
+      const toggle = $(`settings-group-toggle-${group}`);
+      toggle?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
+      toggle?.focus?.({ preventScroll: true });
+    } else $('closeSettings').focus?.();
+  }
+
+  $('openSettings').onclick = () => openSettings();
+  $('closeSettings').onclick = () => { $('settingsDialog').close(); restoreSettingsFocus(); };
+  $('settingsDialog').onclose = restoreSettingsFocus;
+  function restoreSettingsFocus() {
+    if (!settingsFocusPending || $('settingsDialog').open) return;
+    settingsFocusPending = false;
+    document.body?.classList.remove('settings-open');
+    const origin = settingsReturnGroup ? $(`group-toggle-${settingsReturnGroup}`) : $('openSettings');
+    origin?.focus?.({ preventScroll: true });
   }
 
   function familySection([id, label, iconName], settings) {
@@ -205,13 +224,15 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
       $(`${prefix}group-toggle-${id}`)?.focus?.({ preventScroll: true });
     };
     heading.append(toggle);
-    const link = element('a', 'fr-link family-link', settings ? 'Saisir dans cette famille' : 'Gérer cette famille');
-    link.href = `#${settings ? '' : 'settings-'}group-toggle-${id}`;
-    link.setAttribute('aria-label', settings ? `Saisir · ${label}` : `Gérer · ${label}`);
-    link.append(icon('ri-arrow-right-line'));
-    link.onclick = event => { event?.preventDefault(); openFamily(id, !settings); };
     section.setAttribute('aria-labelledby', toggle.id);
-    panel.append(link);
+    if (!settings) {
+      const link = element('a', 'fr-link family-link', 'Gérer cette famille');
+      link.href = `#settings-group-toggle-${id}`;
+      link.setAttribute('aria-label', `Gérer · ${label}`);
+      link.append(icon('ri-arrow-right-line'));
+      link.onclick = event => { event?.preventDefault(); openSettings(id); };
+      panel.append(link);
+    }
     section.append(heading, panel);
     return { section, panel };
   }
@@ -259,16 +280,19 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
         }, 'ri-add-line'));
         const limit = categoryLimit(notebook, cats.find(category => category[0] === id));
         const controls = element('div', 'limit-controls');
-        const targetLabel = element('label', 'setting', `Maximum · ${unit}/${period === 'day' ? 'jour' : 'semaine'}`);
+        const targetLabel = element('div', 'setting');
+        const targetText = element('label', '', `Maximum · ${unit}/${period === 'day' ? 'jour' : 'semaine'}`);
         const target = element('input', 'fr-input');
         Object.assign(target, { type: 'number', min: 0, max: 10000, step: 0.01, value: limit ?? base ?? 0, disabled: limit === null });
+        target.id = `limit-${id}`;
+        targetText.htmlFor = target.id;
         target.setAttribute('aria-label', `Maximum : ${name}`);
         target.onchange = () => {
           if (target.disabled || !target.validity.valid || target.value === '') { renderSettings(); return; }
           const value = Number(target.value);
           return change(draft => { draft.targets[id] = value; });
         };
-        targetLabel.append(numberControl(target, name));
+        targetLabel.append(targetText, numberControl(target, name));
         const unlimitedLabel = element('label', 'unlimited-choice');
         const unlimited = element('input');
         unlimited.type = 'checkbox';
@@ -361,6 +385,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     const day = $('day').value;
     const [start, end] = weekRange(day);
     $('dayLabel').textContent = weekdayLabel(day);
+    $('settingsContext').textContent = `${weekdayLabel(day)} ${labelDate(day)} · ${selectedMeal}`;
     $('week').textContent = `${labelDate(start)} – ${labelDate(end)}`;
     $('produceSummary').textContent = `Fruits + légumes aujourd’hui : ${formatPortions(produceCount(notebook, day))} / 5 portions minimum`;
     renderCategories(day);
@@ -470,6 +495,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   for (const node of document.querySelectorAll('input:not([type="file"])')) node.classList.add('fr-input');
   render();
   $('app').inert = false;
+  $('openSettings').disabled = false;
   $('storageHelp').textContent = native ? 'Carnet SQLite enregistré dans l’espace privé de l’application Android. Pense à l’exporter pour en garder une copie.' : 'Carnet SQLite conservé dans ce navigateur. Pense à l’exporter pour en garder une copie.';
   status('Carnet prêt. Données enregistrées localement.');
 }
