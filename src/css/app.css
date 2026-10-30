@@ -429,3 +429,7 @@ button, input { touch-action: manipulation; }
 .entry-issue { margin: 4px 0 0; color: var(--color-error); font-size: 13px; }
 
 .form-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+.number-control { display: flex; align-items: stretch; gap: 4px; min-width: 0; }
+.number-control .fr-input { width: 90px; min-width: 0; flex: 1; text-align: center; }
+.number-control .fr-btn { padding: 6px 10px; flex-shrink: 0; }

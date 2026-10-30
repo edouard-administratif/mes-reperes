@@ -3,6 +3,7 @@ import { labelDate, shiftDate, today, weekRange, weekdayLabel } from './dates.js
 import { foodEntries, removeEntries, categoryLimit, categoryCount, produceCount, formatPortions } from './nutrition.js';
 import { chocolateBalance } from './chocolate.js';
 import { readNotebook, importInfo, entryIssues } from './notebook.js';
+import { numberControl } from './number-control.js';
 import { installDaySwipe } from './day-swipe.js';
 
 const $ = id => document.getElementById(id);
@@ -264,7 +265,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
           const value = Number(target.value);
           return change(draft => { draft.targets[id] = value; });
         };
-        targetLabel.append(target);
+        targetLabel.append(numberControl(target, name));
         const unlimitedLabel = element('label', 'unlimited-choice');
         const unlimited = element('input');
         unlimited.type = 'checkbox';
