@@ -490,7 +490,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   };
 
   for (const node of document.querySelectorAll('button')) {
-    if (!node.classList.contains('fr-btn')) node.className += ` fr-btn fr-btn--sm${node.classList.contains('primary') ? '' : ' fr-btn--secondary'}`;
+    if (!node.classList.contains('fr-btn') && !node.classList.contains('icon-action')) node.className += ` fr-btn fr-btn--sm${node.classList.contains('primary') ? '' : ' fr-btn--secondary'}`;
   }
   for (const node of document.querySelectorAll('input:not([type="file"])')) node.classList.add('fr-input');
   render();

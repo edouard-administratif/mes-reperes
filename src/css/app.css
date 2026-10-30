@@ -461,3 +461,7 @@ body.settings-open { overflow: hidden; }
 }
 @keyframes sheet-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { .settings-drawer[open] { animation: none; } }
+
+.icon-action { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; flex-shrink: 0; padding: 8px; border: 0; border-radius: 50%; background: transparent; color: var(--color-primary); font-size: 32px; line-height: 1; }
+.icon-action:hover:not(:disabled) { background: transparent; color: var(--color-primary-hover); }
+.icon-action i { pointer-events: none; }
