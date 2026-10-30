@@ -119,7 +119,7 @@ test('familles repliées au démarrage, une seule ouverte et état conservé apr
   assert.equal(persisted.entries.at(-1).cat, 'wine');
   const findSettings = id => walk(settings).find(node => node.id === id);
   walk(root).find(node => node['aria-label'] === 'Gérer · Viandes et poissons').onclick();
-  assert.equal(nodes.get('categoryManagement').open, true);
+  assert.equal(nodes.get('settings-panel-categories').hidden, false);
   assert.equal(findSettings('settings-group-panel-animal').hidden, false);
   const checkbox = walk(settings).find(node => node['aria-label'] === 'Masquer : Volaille');
   await checkbox.onclick();

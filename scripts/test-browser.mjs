@@ -69,7 +69,7 @@ try {
           check(persisted.entries.length === 2, 'Aliment seul, sans sauce automatique');
           check(!byId('group-panel-animal').hidden, 'État conservé après sauvegarde');
           document.querySelector('[aria-label="Gérer · Viandes et poissons"]').click();
-          check(byId('categoryManagement').open && !byId('settings-group-panel-animal').hidden, 'Lien vers les réglages dépliés');
+          check(!byId('settings-panel-categories').hidden && !byId('settings-group-panel-animal').hidden, 'Lien vers les réglages dépliés');
           document.querySelector('[aria-label="Masquer : Volaille"]').click();
           await settle();
           check(!document.querySelector('[aria-label="Ajouter : Volaille"]'), 'Catégorie décochée masquée');

@@ -3,6 +3,7 @@ import { labelDate, shiftDate, today, weekRange, weekdayLabel } from './dates.js
 import { foodEntries, removeEntries, categoryLimit, categoryCount, produceCount, formatPortions } from './nutrition.js';
 import { chocolateBalance } from './chocolate.js';
 import { readNotebook, importInfo, entryIssues } from './notebook.js';
+import { createTabs } from './tabs.js';
 import { numberControl } from './number-control.js';
 import { installDaySwipe } from './day-swipe.js';
 
@@ -49,6 +50,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   let expandedSettingsGroup = null;
   let lastDeleted = [];
   $('day').value = today();
+  const settingsTabs = createTabs('settings', ['categories', 'reference', 'backup']);
 
   function status(message, error = false) {
     $('storageStatus').textContent = message;
@@ -168,7 +170,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   function openFamily(id, settings) {
     if (settings) {
       expandedSettingsGroup = id;
-      $('categoryManagement').open = true;
+      settingsTabs.select('categories');
       renderSettings();
     } else {
       expandedGroup = id;
@@ -229,7 +231,6 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   }
 
   function renderSettings() {
-    $('settings').replaceChildren();
     $('categorySettings').replaceChildren();
     for (const group of foodGroups) {
       const { section, panel } = familySection(group, true);

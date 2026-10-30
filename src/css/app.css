@@ -433,3 +433,8 @@ button, input { touch-action: manipulation; }
 .number-control { display: flex; align-items: stretch; gap: 4px; min-width: 0; }
 .number-control .fr-input { width: 90px; min-width: 0; flex: 1; text-align: center; }
 .number-control .fr-btn { padding: 6px 10px; flex-shrink: 0; }
+
+.settings-tabs { display: flex; gap: 4px; overflow-x: auto; border-bottom: 2px solid var(--color-border); margin-bottom: 20px; }
+.settings-tabs .settings-tab { border: 0; border-bottom: 3px solid transparent; background: var(--color-surface-muted); color: var(--color-primary); padding: 12px; font: inherit; font-size: 14px; white-space: nowrap; }
+.settings-tabs .settings-tab[aria-selected="true"] { border-bottom-color: var(--color-primary); background: white; font-weight: 700; }
+[role="tabpanel"]:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
