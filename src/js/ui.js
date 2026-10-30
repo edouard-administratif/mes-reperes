@@ -51,6 +51,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   let lastDeleted = [];
   $('day').value = today();
   const settingsTabs = createTabs('settings', ['categories', 'reference', 'backup']);
+  const mainTabs = createTabs('main', ['meals', 'journal', 'effort', 'week'], { onChange: updateDateControls });
 
   function status(message, error = false) {
     $('storageStatus').textContent = message;
@@ -173,6 +174,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
       settingsTabs.select('categories');
       renderSettings();
     } else {
+      mainTabs.select('meals');
       expandedGroup = id;
       renderCategories($('day').value);
     }
@@ -316,6 +318,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
       row.append(element('span', '', `${entry.date} · ${entry.text} · ${entryIssues(entry).join(' · ')}`),
         button(`Voir le journal du ${entry.date} : ${entry.text}`, () => {
           $('day').value = entry.date;
+          mainTabs.select('journal');
           render();
           $('journal').scrollIntoView?.({ block: 'center', behavior: 'smooth' });
         }, 'ri-calendar-line'));
@@ -355,8 +358,15 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   }
 
   $('day').onchange = () => { if ($('day').validity.valid && $('day').value) render(); };
+  function updateDateControls(tab) {
+    const weekly = tab === 'week';
+    $('prev').setAttribute('aria-label', weekly ? 'Semaine précédente' : 'Jour précédent');
+    $('next').setAttribute('aria-label', weekly ? 'Semaine suivante' : 'Jour suivant');
+    $('today').textContent = weekly ? 'Cette semaine' : 'Aujourd’hui';
+  }
+
   function navigateDay(offset) {
-    $('day').value = shiftDate($('day').value, offset);
+    $('day').value = shiftDate($('day').value, offset * (mainTabs.active() === 'week' ? 7 : 1));
     render();
   }
   for (const [id, offset] of [['prev', -1], ['next', 1]]) $(id).onclick = () => navigateDay(offset);
