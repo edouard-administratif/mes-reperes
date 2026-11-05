@@ -3,6 +3,8 @@ import { labelDate, shiftDate, today, weekRange, weekdayLabel } from './dates.js
 import { foodEntries, removeEntries, categoryLimit, weeklyStatus, categoryCount, produceCount, formatPortions } from './nutrition.js';
 import { chocolateBalance } from './chocolate.js';
 import { readNotebook, importInfo, entryIssues } from './notebook.js';
+import { installResumeRefresh } from './resume.js';
+import { nextMeal } from './meal-selection.js';
 import { journalGroups } from './journal.js';
 import { createTabs } from './tabs.js';
 import { numberControl } from './number-control.js';
@@ -45,7 +47,9 @@ function downloadNotebook(notebook) {
 
 export function mountUI(store, { exportNotebook = downloadNotebook, native = false } = {}) {
   let notebook = store.snapshot();
-  let selectedMeal = 'Déjeuner';
+  let selectedMeal = nextMeal(notebook.entries, today());
+  let activeToday = today();
+  let resumePending = false;
   const selectedPreparations = {};
   let expandedGroup = null;
   let expandedSettingsGroup = null;
@@ -73,6 +77,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
       return { ok: false };
     } finally {
       $('app').inert = false;
+      if (resumePending && !$('settingsDialog').open) refreshSession();
     }
   }
 
@@ -203,6 +208,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   function restoreSettingsFocus() {
     if (!settingsFocusPending || $('settingsDialog').open) return;
     settingsFocusPending = false;
+    if (resumePending) refreshSession();
     document.body?.classList.remove('settings-open');
     const origin = settingsReturnGroup ? $(`group-toggle-${settingsReturnGroup}`) : $('openSettings');
     origin?.focus?.({ preventScroll: true });
@@ -409,6 +415,19 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     renderSettings();
     renderUndo();
   }
+
+  function refreshSession() {
+    if ($('app').inert || $('settingsDialog').open) { resumePending = true; return; }
+    resumePending = false;
+    const currentToday = today();
+    if ($('day').value === activeToday) $('day').value = currentToday;
+    activeToday = currentToday;
+    notebook = store.snapshot();
+    selectedMeal = nextMeal(notebook.entries, $('day').value);
+    for (const node of $('meals').children) node.setAttribute('aria-pressed', String(node.title === selectedMeal));
+    render();
+  }
+  installResumeRefresh(refreshSession);
 
   for (const [iconName, name] of meals) {
     const choice = button(name, () => {

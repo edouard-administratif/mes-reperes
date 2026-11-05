@@ -328,3 +328,34 @@ test('journal regroupé : supprimer et restaurer toutes les portions d’une lig
   removals = walk(nodes.get('journal')).filter(node => node['aria-label'] === 'Supprimer poultry');
   assert.equal(removals.length, 1);
 });
+
+test('reprise : proposer le repas suivant sans avancer pendant la saisie ni interrompre les réglages', async context => {
+  const nodes = new Map();
+  const previousDocument = globalThis.document;
+  const previousWindow = globalThis.window;
+  context.after(() => { globalThis.document = previousDocument; globalThis.window = previousWindow; });
+  globalThis.window = new EventTarget();
+  globalThis.document = {
+    getElementById: id => { if (!nodes.has(id)) nodes.set(id, new Node()); return nodes.get(id); },
+    createElement: tag => new Node(tag), createTextNode: text => ({ textContent: text }), querySelectorAll: () => [],
+  };
+  const day = today();
+  let persisted = { ...emptyNotebook(), entries: [food('1', 'poultry', { date: day })] };
+  const store = createStore({ read: () => persisted, write: async draft => { persisted = structuredClone(draft); return persisted; } });
+  mountUI(store);
+  const selected = () => nodes.get('meals').children.find(node => node['aria-pressed'] === 'true').title;
+  assert.equal(selected(), 'Collation');
+  await walk(nodes.get('categories')).find(node => node['aria-label'] === 'Ajouter : Volaille').onclick();
+  assert.equal(selected(), 'Collation');
+  globalThis.window.dispatchEvent(new Event('mes-reperes-resume'));
+  assert.equal(selected(), 'Dîner');
+  nodes.get('openSettings').onclick();
+  await walk(nodes.get('categorySettings')).find(node => node['aria-label'] === 'Noter une portion : Verre d’alcool').onclick();
+  globalThis.window.dispatchEvent(new Event('mes-reperes-resume'));
+  assert.equal(selected(), 'Dîner');
+  nodes.get('closeSettings').onclick();
+  assert.equal(selected(), 'Petit-déjeuner');
+  nodes.get('day').value = '2000-01-01'; nodes.get('day').onchange();
+  globalThis.window.dispatchEvent(new Event('pageshow'));
+  assert.equal(nodes.get('day').value, '2000-01-01');
+});
