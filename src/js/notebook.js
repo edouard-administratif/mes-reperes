@@ -8,7 +8,9 @@ export function readNotebook(data) {
   const known = new Set(cats.filter(category => category[0] !== 'animalTotal').map(category => category[0]));
   const ignoredCategories = new Set();
   let ignoredCount = 0;
-  const entries = data.entries.filter(entry => {
+  // Merge existing wine/beer records rather than dropping consumed portions.
+  const entries = data.entries.map(entry => entry?.type === 'food' && ['wine', 'beer'].includes(entry.cat)
+    ? { ...entry, cat: 'alcohol', text: 'Verre d’alcool' } : entry).filter(entry => {
     if (entry?.type === 'food' && !known.has(entry.cat)) {
       ignoredCategories.add(String(entry.cat ?? '(sans catégorie)'));
       ignoredCount++;

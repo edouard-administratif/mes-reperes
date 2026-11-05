@@ -114,11 +114,11 @@ test('familles repliées au démarrage, une seule ouverte et état conservé apr
   assert.equal(find('group-panel-animal').hidden, false);
   nodes.get('next').onclick();
   assert.equal(find('group-panel-animal').hidden, false);
-  assert(!walk(root).some(node => node['aria-label'] === 'Ajouter : Verre de vin'));
+  assert(!walk(root).some(node => node['aria-label'] === 'Ajouter : Verre d’alcool'));
   const settings = nodes.get('categorySettings');
-  await walk(settings).find(node => node['aria-label'] === 'Noter une portion : Verre de vin').onclick();
-  assert(walk(root).some(node => node['aria-label'] === 'Ajouter : Verre de vin'));
-  assert.equal(persisted.entries.at(-1).cat, 'wine');
+  await walk(settings).find(node => node['aria-label'] === 'Noter une portion : Verre d’alcool').onclick();
+  assert(walk(root).some(node => node['aria-label'] === 'Ajouter : Verre d’alcool'));
+  assert.equal(persisted.entries.at(-1).cat, 'alcohol');
   const findSettings = id => walk(settings).find(node => node.id === id);
   walk(root).find(node => node['aria-label'] === 'Gérer · Viandes et poissons').onclick();
   assert.equal(nodes.get('settings-panel-categories').hidden, false);
@@ -247,7 +247,7 @@ test('entrées invalides : alerte persistante, accès au jour, suppression et an
   assert.equal(nodes.get('app').inert, false);
   assert.equal(nodes.get('notice').hidden, false);
   assert(walk(nodes.get('notice')).some(node => node.textContent?.includes('Vapeur')));
-  await find('categorySettings', 'Noter une portion : Verre de vin').onclick();
+  await find('categorySettings', 'Noter une portion : Verre d’alcool').onclick();
   assert.equal(nodes.get('notice').hidden, false);
   find('notice', 'Voir le journal du 2026-10-25 : Viande vapeur').onclick();
   assert.equal(nodes.get('day').value, '2026-10-25');

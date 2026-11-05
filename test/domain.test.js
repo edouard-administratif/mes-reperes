@@ -89,3 +89,14 @@ test('plafonds numériques ou illimités pour toutes les catégories, import san
   assert.equal(entryIssues(invalid).length, 2);
   assert.equal(readNotebook({ entries: [food('new', 'meat', { preparation: 'Frit' })] }).notebook.entries[0].preparation, 'Frit');
 });
+
+test('fusion alcool : conserver les verres de vin et bière avec leurs dates et repas', () => {
+  const source = { ...emptyNotebook(), entries: [food('wine', 'wine'), food('beer', 'beer'), food('spirit', 'alcohol')], targets: { wine: 2, alcohol: 4 } };
+  const result = readNotebook(source);
+  assert.equal(result.ignoredCount, 0);
+  assert.deepEqual(result.notebook.entries.map(entry => entry.cat), ['alcohol', 'alcohol', 'alcohol']);
+  assert.equal(result.notebook.entries[0].meal, source.entries[0].meal);
+  assert.equal(categoryCount(result.notebook, category('alcohol'), '2026-10-25'), 3);
+  assert.deepEqual(result.notebook.targets, { alcohol: 4 });
+  assert(!cats.some(category => ['wine', 'beer'].includes(category[0])));
+});

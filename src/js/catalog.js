@@ -2,9 +2,7 @@ export const cats = [
   
 ['starter','ri-bowl-line','Entrée',7,'week','portion(s)'],
   ['appetizer','ri-cake-line','Biscuits apéritifs',null,'week','portion(s)'],
-  ['wine','ri-goblet-line','Verre de vin',null,'week','verre(s)'],
-  ['beer','ri-beer-line','Verre de bière',null,'week','verre(s)'],
-  ['alcohol','ri-cup-line','Verre d’alcool',null,'week','verre(s)'],
+  ['alcohol','ri-goblet-line','Verre d’alcool',null,'week','verre(s)'],
   ['animalTotal','ri-restaurant-line','Total viandes / poissons',7,'week','portion(s)'],
   ['meat','ri-restaurant-2-line','Viande hors volaille',2,'week','portion(s)'],
   ['poultry','ri-restaurant-line','Volaille',3,'week','portion(s)'],
@@ -32,7 +30,7 @@ export const foodGroups = [
 ['starches','Féculents et légumes','ri-leaf-line',['salad','wholegrain','starch']],
 ['dairy','Laitages et fromages','ri-cup-line',['unsweetenedDairy','cheese']],
 ['extras','Fruits et desserts','ri-cake-3-line',['fruit','nuts','dessert']],
-['drinks','Boissons alcoolisées','ri-goblet-line',['wine','beer','alcohol']]
+['drinks','Boissons alcoolisées','ri-goblet-line',['alcohol']]
 ];
 
 export const animalCategories = ["meat", "poultry", "charcuterie", "fish", "oilyfish"];
