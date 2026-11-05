@@ -11,4 +11,10 @@
 
 - Commencer chaque message de commit par un verbe à l’infinitif.
 - Faire un commit distinct par fonctionnalité, correction ou issue demandée.
-- Pour une issue, inclure `Closes #<numéro>` dans le message et mentionner explicitement la contribution de Codex.
+- Pour une issue, inclure `Closes #<numéro>` dans le message.
+- Pour chaque commit créé ou amendé avec la contribution de Codex, y compris via le plugin GitHub, terminer le message par le trailer officiel ci-dessous, présent une seule fois et séparé du corps par une ligne vide :
+
+  ```text
+  Co-authored-by: Codex <noreply@openai.com>
+  ```
+- Conserver les autres auteurs et trailers existants. Une simple mention « Contribution : Codex » ne remplace pas ce trailer.
