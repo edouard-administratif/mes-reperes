@@ -3,6 +3,7 @@ import { labelDate, shiftDate, today, weekRange, weekdayLabel } from './dates.js
 import { foodEntries, removeEntries, categoryLimit, weeklyStatus, categoryCount, produceCount, formatPortions } from './nutrition.js';
 import { chocolateBalance } from './chocolate.js';
 import { readNotebook, importInfo, entryIssues } from './notebook.js';
+import { journalGroups } from './journal.js';
 import { createTabs } from './tabs.js';
 import { numberControl } from './number-control.js';
 import { installDaySwipe } from './day-swipe.js';
@@ -96,7 +97,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   }
 
   async function remove(entry) {
-    const result = await change(draft => removeEntries(draft, entry.id));
+    const result = await change(draft => removeEntries(draft, entry.ids ?? entry.id));
     if (result.ok) {
       lastDeleted = result.value;
       renderUndo();
@@ -113,7 +114,12 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     if (!entries.length) {
       container.append(element('p', 'empty', id === 'journal' ? 'Aucun repas enregistré pour cette journée.' : 'Rien de noté pour le moment.'));
     }
+    let currentMeal = null;
     for (const entry of entries) {
+      if (id === 'journal' && entry.meal !== currentMeal) {
+        currentMeal = entry.meal;
+        container.append(element('h3', 'journal-meal', entry.meal || 'Repas non renseigné'));
+      }
       const row = element('div', 'entry');
       const description = entry.type === 'food' ?
         `${entry.meal} · ${entry.text} · ${formatPortions(entry.portions)} portion(s)${entry.preparation !== 'Nature' ? ` · ${entry.preparation}` : ''}` : entry.text;
@@ -391,7 +397,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     renderCategories(day);
     renderIssues();
     const daily = notebook.entries.filter(entry => entry.date === day);
-    renderList('journal', daily.filter(entry => entry.type === 'food'));
+    renderList('journal', journalGroups(daily.filter(entry => entry.type === 'food')));
     renderList('efforts', daily.filter(entry => entry.type === 'physical'));
     renderList('treats', daily.filter(entry => entry.type === 'chocolate'));
     const balance = chocolateBalance(notebook.entries, day);

@@ -306,3 +306,25 @@ test('navigation : date commune, semaines, mesures et ouverture ciblée des rég
   assert.equal(nodes.get('settings-panel-categories').hidden, false);
   nodes.get('closeSettings').onclick();
 });
+
+test('journal regroupé : supprimer et restaurer toutes les portions d’une ligne', async context => {
+  const nodes = new Map();
+  const previous = globalThis.document;
+  context.after(() => { globalThis.document = previous; });
+  globalThis.document = {
+    getElementById: id => { if (!nodes.has(id)) nodes.set(id, new Node()); return nodes.get(id); },
+    createElement: tag => new Node(tag), createTextNode: text => ({ textContent: text }), querySelectorAll: () => [],
+  };
+  const day = today();
+  let persisted = { ...emptyNotebook(), entries: [food('1', 'poultry', { date: day }), food('2', 'poultry', { date: day })] };
+  const store = createStore({ read: () => persisted, write: async draft => { persisted = structuredClone(draft); return persisted; } });
+  mountUI(store);
+  let removals = walk(nodes.get('journal')).filter(node => node['aria-label'] === 'Supprimer poultry');
+  assert.equal(removals.length, 1);
+  await removals[0].onclick();
+  assert.equal(persisted.entries.length, 0);
+  await nodes.get('undoDelete').onclick();
+  assert.equal(persisted.entries.length, 2);
+  removals = walk(nodes.get('journal')).filter(node => node['aria-label'] === 'Supprimer poultry');
+  assert.equal(removals.length, 1);
+});

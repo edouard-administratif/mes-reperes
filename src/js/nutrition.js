@@ -27,8 +27,8 @@ export function foodEntries(category, { day, meal, preparation, id = () => crypt
 }
 
 export function removeEntries(notebook, id) {
-  const removed = notebook.entries.filter(entry => entry.id === id);
-  const ids = new Set(removed.map(entry => entry.id));
+  const ids = new Set(Array.isArray(id) ? id : [id]);
+  const removed = notebook.entries.filter(entry => ids.has(entry.id));
   notebook.entries = notebook.entries.filter(entry => !ids.has(entry.id));
   return removed;
 }
