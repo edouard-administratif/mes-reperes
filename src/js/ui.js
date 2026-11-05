@@ -3,6 +3,7 @@ import { labelDate, shiftDate, today, weekRange, weekdayLabel } from './dates.js
 import { foodEntries, removeEntries, categoryLimit, weeklyStatus, categoryCount, produceCount, formatPortions } from './nutrition.js';
 import { chocolateBalance } from './chocolate.js';
 import { readNotebook, importInfo, entryIssues } from './notebook.js';
+import { portionProfiles, weeklyPortionProfile } from './portion-profile.js';
 import { installResumeRefresh } from './resume.js';
 import { nextMeal } from './meal-selection.js';
 import { journalGroups } from './journal.js';
@@ -326,32 +327,28 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   function renderWeeklyStatus(day) {
     const container = $('weeklyStatus');
     container.replaceChildren();
-    const rows = weeklyStatus(notebook, day);
-    if (!rows.length) container.append(element('p', 'empty', 'Aucun plafond à afficher pour cette semaine.'));
-    for (const [, label, , ids] of foodGroups) {
-      const items = rows.filter(row => ids.includes(row.id));
-      if (!items.length) continue;
-      const group = element('section', 'weekly-group');
-      group.append(element('h3', '', label));
-      for (const row of items) {
-        const item = element('div', 'weekly-category');
-        item.append(element('strong', '', row.name));
-        const result = row.exceeded > 0 ? `Dépassement : ${formatPortions(row.exceeded)} ${row.unit}` :
-          row.remaining === 0 ? 'Maximum atteint' : row.period === 'week' ? `Reste avant le maximum : ${formatPortions(row.remaining)} ${row.unit}` : 'Plafond journalier respecté';
-        item.append(element('p', row.exceeded > 0 ? 'over' : 'detail', result));
-        item.append(element('p', 'detail', `${formatPortions(row.count)} ${row.unit} notées · maximum ${formatPortions(row.limit)} / ${row.period === 'day' ? 'jour' : 'semaine'}`));
-        if (row.days.length) {
-          const list = element('ul', 'daily-limits');
-          for (const entry of row.days.filter(entry => row.limit > 0 || entry.exceeded > 0)) {
-            const text = entry.exceeded > 0 ? `dépassement de ${formatPortions(entry.exceeded)}` : `reste ${formatPortions(entry.remaining)}`;
-            list.append(element('li', entry.exceeded > 0 ? 'over' : '', `${labelDate(entry.date)} : ${text} ${row.unit}`));
-          }
-          item.append(list);
+    const excesses = weeklyStatus(notebook, day).filter(row => row.exceeded > 0);
+    container.append(element('h3', '', 'Excès'));
+    if (!excesses.length) container.append(element('p', 'detail', 'Aucun dépassement.'));
+    for (const row of excesses) {
+      const item = element('div', 'weekly-category');
+      item.append(element('strong', '', row.name), element('p', 'over', `Dépassement : ${formatPortions(row.exceeded)} ${row.unit}`));
+      if (row.days.length) {
+        const list = element('ul', 'daily-limits');
+        for (const entry of row.days.filter(entry => entry.exceeded > 0)) {
+          list.append(element('li', 'over', `${labelDate(entry.date)} : dépassement de ${formatPortions(entry.exceeded)} ${row.unit}`));
         }
-        group.append(item);
+        item.append(list);
       }
-      container.append(group);
+      container.append(item);
     }
+    const portions = element('dl', 'nutrient-portions');
+    for (const row of weeklyPortionProfile(notebook, day)) {
+      const item = element('div', row.id === 'sugars' ? 'sugar-portions' : '');
+      item.append(element('dt', '', row.name), element('dd', '', `${formatPortions(row.portions)} portion(s)`));
+      portions.append(item);
+    }
+    container.append(portions);
   }
 
   function renderMeasurements(week) {
@@ -428,6 +425,13 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     render();
   }
   installResumeRefresh(refreshSession);
+
+  for (const [, name, ids] of portionProfiles) {
+    const item = element('div');
+    item.append(element('dt', '', name), element('dd', '', ids.map(id => cats.find(category => category[0] === id)[2]).join(', ')));
+    $('portionReferences').append(item);
+  }
+
 
   for (const [iconName, name] of meals) {
     const choice = button(name, () => {

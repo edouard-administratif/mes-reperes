@@ -444,7 +444,6 @@ body { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
 }
 .app-tab-panel { min-width: 0; }
 
-.weekly-group h3 { font-size: 16px; margin: 20px 0 8px; }
 .weekly-category { padding: 12px 0; border-top: 1px solid var(--color-border); font-size: 14px; }
 .daily-limits { display: flex; flex-wrap: wrap; gap: 6px 20px; padding-left: 18px; font-size: 12px; color: var(--color-text-muted); }
 
@@ -471,3 +470,10 @@ body.settings-open { overflow: hidden; }
 .icon-action i { pointer-events: none; }
 
 .journal-meal { margin: 20px 0 8px; font-size: 16px; }
+
+.nutrient-portions { margin: 20px 0 0; }
+.nutrient-portions > div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid var(--color-border); font-size: 14px; }
+.nutrient-portions dd { margin: 0; white-space: nowrap; }
+.nutrient-portions .sugar-portions dt { padding-left: 16px; }
+.portion-references dt { font-weight: 700; font-size: 13px; }
+.portion-references dd { margin: 4px 0 12px; font-size: 13px; }
