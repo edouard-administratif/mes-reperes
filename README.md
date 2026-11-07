@@ -221,3 +221,5 @@ Le profil hebdomadaire est un classement qualitatif des portions, documenté dan
 Contribution aux évolutions des issues #1 à #4 : Codex, assistant IA d’OpenAI (implémentation et tests).
 
 Chaque changement de jour ou de repas remet les préparations de toutes les familles à Nature. Changer d’onglet, ouvrir les réglages ou enregistrer une portion du même repas conserve la préparation en cours. Les préparations des portions déjà enregistrées ne sont jamais modifiées.
+
+Les quantités affichées accordent les noms et adjectifs sans suffixe entre parenthèses. Zéro utilise le pluriel, sauf pour une quantité dont le maximum est inférieur ou égal à un ; les fractions suivent les règles françaises. Les unités du catalogue sont stockées au singulier.

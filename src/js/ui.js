@@ -6,6 +6,7 @@ import { readNotebook, importInfo, entryIssues } from './notebook.js';
 import { portionProfiles, weeklyPortionProfile } from './portion-profile.js';
 import { installResumeRefresh } from './resume.js';
 import { nextMealSelection } from './meal-selection.js';
+import { pluralize } from './quantities.js';
 import { journalGroups } from './journal.js';
 import { createTabs } from './tabs.js';
 import { numberControl } from './number-control.js';
@@ -137,8 +138,9 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
         container.append(element('h3', 'journal-meal', entry.meal || 'Repas non renseigné'));
       }
       const row = element('div', 'entry');
+      const unit = cats.find(category => category[0] === entry.cat)?.[5] ?? 'portion';
       const description = entry.type === 'food' ?
-        `${entry.meal} · ${entry.text} · ${formatPortions(entry.portions)} portion(s)${entry.preparation !== 'Nature' ? ` · ${entry.preparation}` : ''}` : entry.text;
+        `${entry.meal} · ${entry.text} · ${formatPortions(entry.portions)} ${pluralize(entry.portions, unit)}${entry.preparation !== 'Nature' ? ` · ${entry.preparation}` : ''}` : entry.text;
       const issues = entryIssues(entry);
       const content = element('div');
       content.append(element('span', '', description));
@@ -159,8 +161,8 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     const content = element('div');
     const title = element('div', 'name');
     title.append(icon(iconName), document.createTextNode(name));
-    let text = target === null ? `${formatPortions(count)} ${unit} · illimité` :
-      `${formatPortions(count)} / ${formatPortions(target)} ${unit} · maximum`;
+    let text = target === null ? `${formatPortions(count)} ${pluralize(count, unit)} · sans plafond` :
+      `${formatPortions(count)} / ${formatPortions(target)} ${pluralize(target, unit, { maximum: target })} · maximum`;
     text += period === 'day' ? ' / jour' : ' / semaine';
     if (Object.hasOwn(notebook.targets, id)) text += ' · personnalisé';
     if (target !== null && count >= target) text += count > target ? ' · dépassé' : ' · atteint';
@@ -304,7 +306,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
         const limit = categoryLimit(notebook, cats.find(category => category[0] === id));
         const controls = element('div', 'limit-controls');
         const targetLabel = element('div', 'setting');
-        const targetText = element('label', '', `Maximum · ${unit}/${period === 'day' ? 'jour' : 'semaine'}`);
+        const targetText = element('label', '', `Maximum · ${pluralize(limit ?? 0, unit, { maximum: limit })}/${period === 'day' ? 'jour' : 'semaine'}`);
         const target = element('input', 'fr-input');
         Object.assign(target, { type: 'number', min: 0, max: 10000, step: 0.01, value: limit ?? base ?? 0, disabled: limit === null });
         target.id = `limit-${id}`;
@@ -342,11 +344,11 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     if (!excesses.length) container.append(element('p', 'detail', 'Aucun dépassement.'));
     for (const row of excesses) {
       const item = element('div', 'weekly-category');
-      item.append(element('strong', '', row.name), element('p', 'over', `Dépassement : ${formatPortions(row.exceeded)} ${row.unit}`));
+      item.append(element('strong', '', row.name), element('p', 'over', `Dépassement : ${formatPortions(row.exceeded)} ${pluralize(row.exceeded, row.unit)}`));
       if (row.days.length) {
         const list = element('ul', 'daily-limits');
         for (const entry of row.days.filter(entry => entry.exceeded > 0)) {
-          list.append(element('li', 'over', `${labelDate(entry.date)} : dépassement de ${formatPortions(entry.exceeded)} ${row.unit}`));
+          list.append(element('li', 'over', `${labelDate(entry.date)} : dépassement de ${formatPortions(entry.exceeded)} ${pluralize(entry.exceeded, row.unit)}`));
         }
         item.append(list);
       }
@@ -355,7 +357,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     const portions = element('dl', 'nutrient-portions');
     for (const row of weeklyPortionProfile(notebook, day)) {
       const item = element('div', row.id === 'sugars' ? 'sugar-portions' : '');
-      item.append(element('dt', '', row.name), element('dd', '', `${formatPortions(row.portions)} portion(s)`));
+      item.append(element('dt', '', row.name), element('dd', '', `${formatPortions(row.portions)} ${pluralize(row.portions, 'portion')}`));
       portions.append(item);
     }
     container.append(portions);
@@ -386,7 +388,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     const invalid = notebook.entries.filter(entry => entryIssues(entry).length);
     notice.hidden = !invalid.length;
     if (!invalid.length) return;
-    notice.append(element('p', '', `${invalid.length} entrée(s) avec un repas ou une préparation invalide. Le carnet reste utilisable. Supprime les éléments concernés dans le journal du jour pour corriger ces erreurs.`));
+    notice.append(element('p', '', `${invalid.length} ${pluralize(invalid.length, 'entrée')} avec un repas ou une préparation invalide. Le carnet reste utilisable. Supprime les éléments concernés dans le journal du jour pour corriger ces erreurs.`));
     for (const entry of invalid) {
       const row = element('div', 'entry');
       row.append(element('span', '', `${entry.date} · ${entry.text} · ${entryIssues(entry).join(' · ')}`),
@@ -414,8 +416,8 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     renderList('efforts', daily.filter(entry => entry.type === 'physical'));
     renderList('treats', daily.filter(entry => entry.type === 'chocolate'));
     const balance = chocolateBalance(notebook.entries, day);
-    $('balance').textContent = `${balance.total} carré(s) disponible(s)`;
-    $('creditDetail').textContent = `${balance.carried} d’hier (expirent ce soir) · ${balance.fresh} du jour.${balance.shortfall ? ` ${balance.shortfall} carré(s) consommé(s) au-delà du solde après modification.` : ''}`;
+    $('balance').textContent = `${balance.total} ${pluralize(balance.total, 'carré')} ${pluralize(balance.total, 'disponible')}`;
+    $('creditDetail').textContent = `${balance.carried} d’hier (${pluralize(balance.carried, 'expire', { plural: 'expirent' })} ce soir) · ${balance.fresh} du jour.${balance.shortfall ? ` ${balance.shortfall} ${pluralize(balance.shortfall, 'carré')} ${pluralize(balance.shortfall, 'consommé')} au-delà du solde après modification.` : ''}`;
     $('chocolate').disabled = balance.total < 1;
     renderWeeklyStatus(day);
     renderMeasurements(start);

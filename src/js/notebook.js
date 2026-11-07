@@ -1,3 +1,4 @@
+import { pluralize } from './quantities.js';
 import { cats, meals, preparations } from './catalog.js';
 import { isDate, weekRange } from './dates.js';
 
@@ -60,7 +61,7 @@ export function readNotebook(data) {
 }
 
 export function importInfo(result) {
-  const ignored = result.ignoredCount ? ` ${result.ignoredCount} entrée(s) ignorée(s) : catégorie(s) inconnue(s) « ${result.ignoredCategories.join(', ')} ».` : '';
+  const ignored = result.ignoredCount ? ` ${result.ignoredCount} ${pluralize(result.ignoredCount, 'entrée')} ${pluralize(result.ignoredCount, 'ignorée')} : ${pluralize(result.ignoredCategories.length, 'catégorie')} ${pluralize(result.ignoredCategories.length, 'inconnue')} « ${result.ignoredCategories.join(', ')} ».` : '';
   return ignored;
 }
 
