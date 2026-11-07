@@ -219,3 +219,5 @@ Le journal regroupe les portions ayant la même date, le même repas, la même c
 Le profil hebdomadaire est un classement qualitatif des portions, documenté dans Références et centralisé dans `portion-profile.js`. Il ne calcule pas de quantités de nutriments. Les catégories peuvent contribuer à plusieurs compteurs et les sucres forment un sous-ensemble des glucides. Les entrées composées et l’alcool ne contribuent à aucun profil sans connaissance de leur composition. Les préparations n’ajoutent pas automatiquement de portions ; les sauces et fritures se déclarent comme catégories indépendantes.
 
 Contribution aux évolutions des issues #1 à #4 : Codex, assistant IA d’OpenAI (implémentation et tests).
+
+Chaque changement de jour ou de repas remet les préparations de toutes les familles à Nature. Changer d’onglet, ouvrir les réglages ou enregistrer une portion du même repas conserve la préparation en cours. Les préparations des portions déjà enregistrées ne sont jamais modifiées.

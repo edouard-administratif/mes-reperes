@@ -50,6 +50,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   let notebook = store.snapshot();
   const initialSelection = nextMealSelection(notebook.entries);
   let selectedMeal = initialSelection.meal;
+  let selectedDay = initialSelection.day;
   let resumePending = false;
   const selectedPreparations = {};
   let expandedGroup = null;
@@ -80,6 +81,15 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
       $('app').inert = false;
       if (resumePending && !$('settingsDialog').open) refreshSession();
     }
+  }
+
+  function selectContext(day, meal = selectedMeal) {
+    if (day !== selectedDay || meal !== selectedMeal) {
+      for (const group of Object.keys(selectedPreparations)) delete selectedPreparations[group];
+    }
+    selectedDay = day;
+    selectedMeal = meal;
+    $('day').value = day;
   }
 
   function preparationFor(categoryId) {
@@ -381,7 +391,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
       const row = element('div', 'entry');
       row.append(element('span', '', `${entry.date} · ${entry.text} · ${entryIssues(entry).join(' · ')}`),
         button(`Voir le journal du ${entry.date} : ${entry.text}`, () => {
-          $('day').value = entry.date;
+          selectContext(entry.date);
           mainTabs.select('journal');
           render();
           $('journal').scrollIntoView?.({ block: 'center', behavior: 'smooth' });
@@ -418,8 +428,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     resumePending = false;
     notebook = store.snapshot();
     const selection = nextMealSelection(notebook.entries);
-    $('day').value = selection.day;
-    selectedMeal = selection.meal;
+    selectContext(selection.day, selection.meal);
     for (const node of $('meals').children) node.setAttribute('aria-pressed', String(node.title === selectedMeal));
     render();
   }
@@ -434,7 +443,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
 
   for (const [iconName, name] of meals) {
     const choice = button(name, () => {
-      selectedMeal = name;
+      selectContext($('day').value, name);
       for (const node of $('meals').children) node.setAttribute('aria-pressed', String(node === choice));
       render();
     }, iconName);
@@ -442,7 +451,9 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     $('meals').append(choice);
   }
 
-  $('day').onchange = () => { if ($('day').validity.valid && $('day').value) render(); };
+  $('day').onchange = () => {
+    if ($('day').validity.valid && $('day').value) { selectContext($('day').value); render(); }
+  };
   function updateDateControls(tab) {
     const weekly = tab === 'week';
     $('prev').setAttribute('aria-label', weekly ? 'Semaine précédente' : 'Jour précédent');
@@ -451,7 +462,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   }
 
   function navigateDay(offset) {
-    $('day').value = shiftDate($('day').value, offset * (mainTabs.active() === 'week' ? 7 : 1));
+    selectContext(shiftDate($('day').value, offset * (mainTabs.active() === 'week' ? 7 : 1)));
     render();
   }
   for (const [id, offset] of [['prev', -1], ['next', 1]]) $(id).onclick = () => navigateDay(offset);
@@ -459,7 +470,7 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
     $('app').classList.add('day-swipe');
     installDaySwipe($('app'), navigateDay);
   }
-  $('today').onclick = () => { $('day').value = today(); render(); };
+  $('today').onclick = () => { selectContext(today()); render(); };
   $('export').onclick = async () => {
     $('app').inert = true;
     status('Préparation de l’export…');

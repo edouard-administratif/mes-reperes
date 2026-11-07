@@ -377,3 +377,34 @@ test('redémarrage : ouvrir au lendemain du dernier dîner plutôt qu’à aujou
   assert.equal(nodes.get('day').value, '2026-02-01');
   assert.equal(nodes.get('meals').children.find(node => node['aria-pressed'] === 'true').title, 'Petit-déjeuner');
 });
+
+test('préparations : revenir à Nature quand le jour ou le repas change', async context => {
+  const nodes = new Map();
+  const previous = globalThis.document;
+  context.after(() => { globalThis.document = previous; });
+  globalThis.document = {
+    getElementById: id => { if (!nodes.has(id)) nodes.set(id, new Node()); return nodes.get(id); },
+    createElement: tag => new Node(tag), createTextNode: text => ({ textContent: text }), querySelectorAll: () => [],
+  };
+  let persisted = { ...emptyNotebook(), entries: [food('1', 'poultry')] };
+  const store = createStore({ read: () => persisted, write: async draft => { persisted = structuredClone(draft); return persisted; } });
+  mountUI(store);
+  const find = label => walk(nodes.get('categories')).find(node => node['aria-label'] === label);
+  find('En sauce · Viandes et poissons').onclick();
+  await find('Ajouter : Volaille').onclick();
+  assert.equal(find('En sauce · Viandes et poissons')['aria-pressed'], 'true');
+  nodes.get('main-tab-journal').onclick(); nodes.get('main-tab-meals').onclick();
+  assert.equal(find('En sauce · Viandes et poissons')['aria-pressed'], 'true');
+  nodes.get('meals').children.find(node => node.title === 'Dîner').onclick();
+  assert.equal(find('Nature · Viandes et poissons')['aria-pressed'], 'true');
+  find('Frit · Viandes et poissons').onclick();
+  nodes.get('next').onclick();
+  assert.equal(find('Nature · Viandes et poissons')['aria-pressed'], 'true');
+  find('Grillé · Viandes et poissons').onclick();
+  nodes.get('day').value = '2026-02-01'; nodes.get('day').onchange();
+  assert.equal(find('Nature · Viandes et poissons')['aria-pressed'], 'true');
+  find('En sauce · Viandes et poissons').onclick();
+  nodes.get('today').onclick();
+  assert.equal(find('Nature · Viandes et poissons')['aria-pressed'], 'true');
+  assert.equal(persisted.entries.find(entry => entry.id !== '1').preparation, 'En sauce');
+});
