@@ -1,0 +1,24 @@
+name: Marquer les issues à valider
+
+on:
+  issues:
+    types: [closed]
+
+permissions:
+  issues: write
+
+jobs:
+  label:
+    name: Ajouter le label à valider
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Créer le label et l’ajouter à l’issue fermée
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          gh label create "à valider" --color "FBCA04" --description "Implémenté, en attente de validation utilisateur" --force
+          gh issue edit "$ISSUE_NUMBER" --add-label "à valider"

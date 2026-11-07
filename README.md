@@ -58,6 +58,14 @@ Le cache Gradle et la clé de signature de debug sont conservés dans **`.cache/
 
 Docker doit être démarré et `docker info` doit fonctionner avec ton utilisateur. Ne lance pas `sudo npm`.
 
+### Valider les issues livrées
+
+Le workflow **Marquer les issues à valider** ajoute automatiquement le label **à valider** à chaque fermeture d’issue, y compris une fermeture par `Closes #…` dans un commit. Il crée le label si nécessaire, sans secret supplémentaire à configurer.
+
+Après un test réussi, retirer ce label. En cas d’échec, rouvrir l’issue : sa prochaine fermeture ajoutera de nouveau le label. Les tests automatiques ne retirent jamais ce label. Pour retrouver les issues en attente : `is:issue label:"à valider"`.
+
+Cette automatisation s’applique aux prochaines fermetures ; elle ne modifie pas les issues déjà fermées.
+
 ### Compiler avec GitHub Actions
 
 Le workflow **Android debug APK** (`.github/workflows/android-debug.yml`) lance les tests puis réutilise `npm run android:docker` sur un runner Ubuntu. Il démarre à chaque push sur `main` et peut être lancé depuis **Actions → Android debug APK → Run workflow**.
