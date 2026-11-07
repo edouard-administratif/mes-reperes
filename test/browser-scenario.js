@@ -34,12 +34,15 @@ function swipe(dx, dy = 0, target = byId('dayLabel')) {
 (async () => {
   let persisted = { ...emptyNotebook(), entries: [
     { id: 'existing', date: '2026-10-25', type: 'food', cat: 'poultry', text: 'Volaille', portions: 1, meal: 'Déjeuner', preparation: 'Nature' },
+    { id: 'dinner', date: '2026-10-25', type: 'food', cat: 'fish', text: 'Poisson', portions: 1, meal: 'Dîner', preparation: 'Nature' },
+    { id: 'breakfast', date: '2026-10-25', type: 'food', cat: 'fruit', text: 'Fruit', portions: 1, meal: 'Petit-déjeuner', preparation: 'Nature' },
     { id: 'invalid', date: '2026-10-23', type: 'food', cat: 'meat', text: 'Ancien repas vapeur', portions: 1, meal: 'Repas inconnu', preparation: 'Vapeur' },
   ] };
   const store = createStore({ read: () => readNotebook(persisted).notebook, write: async notebook => {
     persisted = readNotebook(notebook).notebook; return persisted;
   } });
   mountUI(store, { native: true });
+  check(byId('day').value === '2026-10-26' && document.querySelector('#meals [aria-pressed="true"]').title === 'Petit-déjeuner', 'Redémarrage : lendemain du dernier dîner, indépendamment d’aujourd’hui');
   check(!byId('app').inert && !byId('notice').hidden, 'Ouverture malgré une entrée invalide');
   await click('Voir le journal du 2026-10-23 : Ancien repas vapeur');
   check(!byId('main-panel-journal').hidden && document.querySelector('#journal .entry-error'), 'Alerte ouvre le journal du jour concerné');
@@ -58,7 +61,7 @@ function swipe(dx, dy = 0, target = byId('dayLabel')) {
   byId('group-toggle-animal').click();
   await click('En sauce · Viandes et poissons');
   await click('Ajouter : Volaille');
-  check(persisted.entries.length === 2 && persisted.entries.at(-1).preparation === 'En sauce', 'Pas de sauce automatique');
+  check(persisted.entries.length === 4 && persisted.entries.at(-1).preparation === 'En sauce', 'Pas de sauce automatique');
   check([...document.querySelectorAll('#categories .name')].every(node => !node.textContent.startsWith('Masquer')), 'Noms des catégories');
   await click('Gérer · Viandes et poissons');
   const dialog = byId('settingsDialog');

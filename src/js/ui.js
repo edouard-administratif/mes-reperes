@@ -5,7 +5,7 @@ import { chocolateBalance } from './chocolate.js';
 import { readNotebook, importInfo, entryIssues } from './notebook.js';
 import { portionProfiles, weeklyPortionProfile } from './portion-profile.js';
 import { installResumeRefresh } from './resume.js';
-import { nextMeal } from './meal-selection.js';
+import { nextMealSelection } from './meal-selection.js';
 import { journalGroups } from './journal.js';
 import { createTabs } from './tabs.js';
 import { numberControl } from './number-control.js';
@@ -48,14 +48,14 @@ function downloadNotebook(notebook) {
 
 export function mountUI(store, { exportNotebook = downloadNotebook, native = false } = {}) {
   let notebook = store.snapshot();
-  let selectedMeal = nextMeal(notebook.entries, today());
-  let activeToday = today();
+  const initialSelection = nextMealSelection(notebook.entries);
+  let selectedMeal = initialSelection.meal;
   let resumePending = false;
   const selectedPreparations = {};
   let expandedGroup = null;
   let expandedSettingsGroup = null;
   let lastDeleted = [];
-  $('day').value = today();
+  $('day').value = initialSelection.day;
   const settingsTabs = createTabs('settings', ['categories', 'reference', 'backup']);
   const mainTabs = createTabs('main', ['meals', 'journal', 'effort', 'week'], { onChange: updateDateControls });
 
@@ -416,11 +416,10 @@ export function mountUI(store, { exportNotebook = downloadNotebook, native = fal
   function refreshSession() {
     if ($('app').inert || $('settingsDialog').open) { resumePending = true; return; }
     resumePending = false;
-    const currentToday = today();
-    if ($('day').value === activeToday) $('day').value = currentToday;
-    activeToday = currentToday;
     notebook = store.snapshot();
-    selectedMeal = nextMeal(notebook.entries, $('day').value);
+    const selection = nextMealSelection(notebook.entries);
+    $('day').value = selection.day;
+    selectedMeal = selection.meal;
     for (const node of $('meals').children) node.setAttribute('aria-pressed', String(node.title === selectedMeal));
     render();
   }

@@ -5,7 +5,7 @@ import { mountUI } from '../src/js/ui.js';
 import { createStore } from '../src/js/store.js';
 import { emptyNotebook, readNotebook } from '../src/js/notebook.js';
 import { food } from './helpers.js';
-import { today, weekdayLabel } from '../src/js/dates.js';
+import { today, shiftDate, weekdayLabel } from '../src/js/dates.js';
 
 class Node {
   constructor(tag = 'div') {
@@ -357,5 +357,23 @@ test('reprise : proposer le repas suivant sans avancer pendant la saisie ni inte
   assert.equal(selected(), 'Petit-déjeuner');
   nodes.get('day').value = '2000-01-01'; nodes.get('day').onchange();
   globalThis.window.dispatchEvent(new Event('pageshow'));
-  assert.equal(nodes.get('day').value, '2000-01-01');
+  assert.equal(nodes.get('day').value, shiftDate(day, 1));
+});
+
+test('redémarrage : ouvrir au lendemain du dernier dîner plutôt qu’à aujourd’hui', context => {
+  const nodes = new Map();
+  const previous = globalThis.document;
+  context.after(() => { globalThis.document = previous; });
+  globalThis.document = {
+    getElementById: id => { if (!nodes.has(id)) nodes.set(id, new Node()); return nodes.get(id); },
+    createElement: tag => new Node(tag), createTextNode: text => ({ textContent: text }), querySelectorAll: () => [],
+  };
+  const persisted = JSON.parse(JSON.stringify({ ...emptyNotebook(), entries: [
+    food('dinner', 'fish', { date: '2026-01-31', meal: 'Dîner' }),
+    food('lunch', 'poultry', { date: '2026-01-31' }),
+    food('latebreakfast', 'fruit', { date: '2026-01-31', meal: 'Petit-déjeuner' }),
+  ] }));
+  mountUI(createStore({ read: () => persisted, write: async draft => draft }));
+  assert.equal(nodes.get('day').value, '2026-02-01');
+  assert.equal(nodes.get('meals').children.find(node => node['aria-pressed'] === 'true').title, 'Petit-déjeuner');
 });
